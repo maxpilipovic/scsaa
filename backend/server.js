@@ -37,8 +37,23 @@ app.get('/', (req, res) => {
   });
 });
 
-//Stripe client
-//const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+//GET USERS
+app.get('/api/users', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+
+    if (error) {
+      throw error;
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

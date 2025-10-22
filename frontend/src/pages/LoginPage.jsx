@@ -34,7 +34,7 @@ function LoginPage() {
         throw error;
       }
 
-      //CHECK if confirmedd...
+      //CHECK if email confirmedd...
       if (!data.user.confirmed_at) {
         toast.info("Please verify your email before logging in.");
         setLoading(false);
