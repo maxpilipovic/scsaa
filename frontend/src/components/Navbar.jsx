@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <nav className="fixed w-full bg-white/95 backdrop-blur-sm z-50 border-b border-purple-200 shadow-sm">
@@ -20,9 +22,15 @@ function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <button className="text-purple-700 hover:text-purple-900 transition font-medium">Login</button>
-            <button className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
-              Register
+            <button 
+              onClick={() => navigate('/login')} 
+              className="text-purple-700 hover:text-purple-900 transition font-medium">
+                Login
+            </button>
+            <button 
+              onClick={() => navigate('/register')} 
+              className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                Register
             </button>
           </div>
 
@@ -40,9 +48,15 @@ function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-purple-200">
           <div className="px-4 py-4 space-y-3">
-            <button className="block w-full text-left text-purple-700 hover:text-purple-900 transition">Login</button>
-            <button className="block w-full bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
-              Register
+            <button 
+              onClick={() => navigate('/login')}
+              className="block w-full text-left text-purple-700 hover:text-purple-900 transition">
+                Login
+            </button>
+            <button 
+              onClick={() => navigate('/register')} 
+              className="block w-full bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition">
+                Register
             </button>
           </div>
         </div>
