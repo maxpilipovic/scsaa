@@ -12,7 +12,7 @@ function RegisterPage() {
     first_name: '',
     last_name: '',
     email: '',
-    grad_year: '',
+    pledge_class: '',
     phone_number: '',
     address: '',
     dob: '', //Stored as YYYY-MM-DD
@@ -41,7 +41,7 @@ function RegisterPage() {
                 data: {
                     first_name: formData.first_name,
                     last_name: formData.last_name,
-                    grad_year: formData.grad_year ? String(formData.grad_year) : null,
+                    pledge_class: formData.pledge_class ? String(formData.pledge_class) : null,
                     phone_number: formData.phone_number,
                     address: formData.address,
                     dob: formData.dob //Stored as YYYY-MM-DD
@@ -134,7 +134,7 @@ function RegisterPage() {
               </div>
             </div>
 
-            {/* Phone & Grad Year */}
+            {/* Phone & Pledge Class */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-purple-900 mb-2">Phone Number</label>
@@ -152,16 +152,16 @@ function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-purple-900 mb-2">Graduation Year</label>
+                <label className="block text-sm font-semibold text-purple-900 mb-2">Pledge Class</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400" size={20} />
                   <input
-                    name="grad_year"
+                    name="pledge_class"
                     type="number"
                     required
                     min="1950"
                     max="2030"
-                    value={formData.grad_year}
+                    value={formData.pledge_class}
                     onChange={handleChange}
                     placeholder="2020"
                     className="w-full pl-10 pr-4 py-3 border-2 border-purple-200 rounded-lg focus:outline-none focus:border-purple-600 transition"
