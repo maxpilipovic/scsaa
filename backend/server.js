@@ -37,22 +37,29 @@ app.get('/', (req, res) => {
   });
 });
 
-//GET USERS
-app.get('/api/users', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*');
+//Check access API route
+app.get('/api/check-access', async (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.replace('Bearer ', '');
 
-    if (error) {
-      throw error;
-    }
+  const { data: { user }, error } = await supabase.auth.getUser(token);
 
-    res.json(data);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+  if (error || !user) {
+    return res.status(401).json({ authorized : false });
   }
+
+  //Check if user exists in your database...
+  const { data: users, error: usersError } = await supabase
+    .from('users')
+    .select('first_name, last_name')
+    .eq('email', user.email)
+    .single();
+
+  if (usersError || !users) {
+    return res.status(403).json({ authorized: false });
+  }
+
+  return res.json({ authorized: true, name: `${users.first_name} ${users.last_name}` });
 });
 
 app.listen(PORT, () => {

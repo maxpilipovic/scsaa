@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
+import { supabase } from '../lib/supabaseClient';
 
 function DashboardPage() {
 
-    const { user, loading } = useAuth();
+    const { user, loading } = useAuth(); //UseAuth Context
     const [authorized, setAuthorized] = useState(null);
-    const [users, setUsers] = useState([]);
     const [hostName, setHostName] = useState("");
 
     useEffect(() => {
@@ -20,23 +20,26 @@ function DashboardPage() {
   
       const checkAccess = async () => {
         try {
-          const usersResponse = await fetch('http://localhost:3001/api/users');
-          const usersData = await usersResponse.json();
-          setUsers(usersData);
-          console.log(user.user_metadata.email);
-          console.log(usersData);      
-          const currentUser = usersData.find(w => w.email === user.user_metadata.email);
+          //Grab token from supabase auth...
+          const token = (await supabase.auth.getSession()).data.session?.access_token;
+          //API call to verify data.
+          const response = await fetch('http://localhost:3001/api/check-access', {
+            headers : {
+              'Authorization' : `Bearer ${token}`
+            }
+          });
           
-          //IF VALID USER
-          if (currentUser) {
+          //Grab the data...
+          const data = await response.json();
+          
+          if (response.ok && data.authorized) {
             setAuthorized(true);
-            setHostName(currentUser.first_name + " " + currentUser.last_name);
-
-          }
-          else  {
+            setHostName(data.name);
+          } else {
             setAuthorized(false);
-            console.log("NOT AUTHORIZED");
           }
+
+
         } catch (error) {
           console.error("NOT AUTHORIZED", error);
           setAuthorized(false);
@@ -46,17 +49,17 @@ function DashboardPage() {
       checkAccess();
     }, [user]);
 
-    // Loading or user not yet loaded
+    //Loading or user not yet loaded
     if (loading || (user && authorized === null)) {
         return <LoadingPage />;
     }
 
-    // User not authorized
+    //User not authorized
     if (user && authorized === false) {
         return <ErrorPage message="You are not authorized to view this page." />;
     }
 
-    // Optional: user not logged in at all
+    //Optional: user not logged in at all
     if (!user) {
         return <ErrorPage message="Please log in to access this page." />;
     }
