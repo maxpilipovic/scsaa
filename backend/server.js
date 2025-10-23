@@ -51,7 +51,7 @@ app.get('/api/check-access', async (req, res) => {
   //Check if user exists in your database...
   const { data: users, error: usersError } = await supabase
     .from('users')
-    .select('first_name, last_name')
+    .select('first_name, last_name, pledge_class, is_admin, phone_number, address, dob')
     .eq('email', user.email)
     .single();
 
@@ -59,7 +59,18 @@ app.get('/api/check-access', async (req, res) => {
     return res.status(403).json({ authorized: false });
   }
 
-  return res.json({ authorized: true, name: `${users.first_name} ${users.last_name}` });
+  return res.json({ 
+    authorized: true, 
+    authUser: {
+      first_name: users.first_name,
+      last_name: users.last_name,
+      pledge_class: users.pledge_class,
+      is_admin: users.is_admin,
+      phone_number: users.phone_number,
+      address: users.address,
+      dob: users.dob,
+    },
+  });
 });
 
 app.listen(PORT, () => {
