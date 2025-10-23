@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabaseClient';
 import SideBar from '../Sidebar/SideBar.jsx';
 import Header from '../components/Header.jsx';
 import OverviewPage from './OverviewPage.jsx';
-import DirectoryPage from './DirectoryPage.jsx';
 import EventsPage from './EventsPage.jsx';
 import ResourcesPage from '../components/ResosurcesPage.jsx';
 

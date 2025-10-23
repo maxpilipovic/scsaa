@@ -25,7 +25,6 @@ const SideBar = ({ activeTab, setActiveTab }) => {
       <nav className="flex-1 px-4">
         <NavButton icon={Home} label="Dashboard" tabName="overview" />
         <NavButton icon={CreditCard} label="Payments" tabName="payments" />
-        <NavButton icon={Users} label="Directory" tabName="directory" />
         <NavButton icon={Calendar} label="Events" tabName="events" />
         <NavButton icon={FileText} label="Resources" tabName="resources" />
       </nav>
