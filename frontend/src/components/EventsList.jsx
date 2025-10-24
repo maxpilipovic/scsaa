@@ -1,5 +1,6 @@
 import React from 'react';
-import EventCard from './EventCard.jsx';
+import EventCard from './EventCard';
+import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
 
 const EventsList = ({ events, compact = false }) => {
   return (

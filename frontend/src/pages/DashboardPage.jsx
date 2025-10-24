@@ -104,15 +104,17 @@ function DashboardPage() {
         {personData?.authUser && <Header membershipData={personData.authUser} />}
 
         <div className="p-8">
-          {activeTab === "overview" && personData?.authUser && (
-            <OverviewPage
-              membershipData={membershipData}
-              paymentHistory={paymentHistory}
-              upcomingEvents={upcomingEvents}
-              announcements={announcements}
-              setActiveTab={setActiveTab}
-            />
-          )}
+          {activeTab === "overview" &&
+            personData?.authUser &&
+            membershipData && (
+                <OverviewPage
+                membershipData={membershipData}
+                paymentHistory={paymentHistory}
+                upcomingEvents={upcomingEvents}
+                announcements={announcements}
+                setActiveTab={setActiveTab}
+                />
+            )}
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
