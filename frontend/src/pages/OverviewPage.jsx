@@ -10,6 +10,12 @@ import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Se
 
 
 const OverviewPage = ({ memberData, paymentHistory, upcomingEvents, announcements, setActiveTab }) => {
+
+  console.log(memberData);
+  console.log(paymentHistory);
+  console.log(upcomingEvents);
+  console.log(announcements);
+  
   return (
     <>
       {/* Status Cards */}

@@ -3,8 +3,6 @@ import SectionCard from '../components/SectionCard';
 import PaymentTable from '../components/PaymentTable';
 
 const PaymentsPage = ({ paymentHistory }) => {
-
-  console.log(paymentHistory);
   
   return (
     <SectionCard title="Payment History">

@@ -3,7 +3,6 @@ import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Se
 
 const PaymentTable = ({ payments, showReceipt = false }) => {
 
-  console.log(payments);
   
   return (
 

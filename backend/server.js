@@ -51,7 +51,7 @@ app.get('/api/check-access', async (req, res) => {
   //Check if user exists in your database...
   const { data: users, error: usersError } = await supabase
     .from('users')
-    .select('first_name, last_name, pledge_class, is_admin, phone_number, address, dob')
+    .select('id, first_name, last_name, pledge_class, is_admin, phone_number, address, dob')
     .eq('email', user.email)
     .single();
 
@@ -62,6 +62,7 @@ app.get('/api/check-access', async (req, res) => {
   return res.json({ 
     authorized: true, 
     authUser: {
+      id: users.id,
       first_name: users.first_name,
       last_name: users.last_name,
       pledge_class: users.pledge_class,
@@ -71,6 +72,51 @@ app.get('/api/check-access', async (req, res) => {
       dob: users.dob,
     },
   });
+});
+
+//DASHBOARD API REQUESTS
+app.get('/api/memberships/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('memberships')
+    .select('*')
+    .eq('user_id', userId)
+    .single(); // Only one membership per user expected
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.get('/api/payments/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { data, error } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.get('/api/events', async (req, res) => {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('start_time', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+app.get('/api/announcements', async (req, res) => {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
 app.listen(PORT, () => {
