@@ -3,14 +3,13 @@ import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Se
 
 const ChapterStats = () => {
   const stats = [
-    { label: "Total Alumni", value: "347" },
-    { label: "Active Members", value: "289" },
-    { label: "Dues Paid (2025)", value: "83%" },
+    { label: "Total Alumni", value: "1" },
+    { label: "Active Members", value: "1" },
   ];
 
   return (
     <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg shadow p-6 text-white">
-      <h3 className="text-lg font-semibold mb-4">Chapter Stats</h3>
+      <h3 className="text-lg font-semibold mb-4">SCSAA Stats</h3>
       <div className="space-y-3">
         {stats.map((stat, idx) => (
           <div key={idx} className="flex justify-between items-center">

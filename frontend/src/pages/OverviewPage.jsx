@@ -4,7 +4,6 @@ import SectionCard from '../components/SectionCard.jsx';
 import AnnouncementsList from '../components/AnnouncementsList.jsx';
 import PaymentTable from '../components/PaymentTable.jsx';
 import EventsList from '../components/EventsList.jsx';
-import QuickActions from '../components/QuickActions.jsx';
 import ChapterStats from '../components/ChapterStats.jsx';
 import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
 
@@ -83,7 +82,6 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
             <EventsList events={upcomingEvents || []} compact={true} />
           </SectionCard>
 
-          <QuickActions />
           <ChapterStats />
         </div>
       </div>
