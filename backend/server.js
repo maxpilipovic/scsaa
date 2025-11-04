@@ -1,122 +1,50 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { createClient } from '@supabase/supabase-js';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import Stripe from 'stripe';
-import e from 'express';
 
-
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-
+import apiRouter from './src/api/v1/routes/index.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-//Middleware
+// Middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173'
-}));
+app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(morgan('combined'));
+
+// The webhook route needs a raw body, so we apply it before express.json().
+// We have already configured the raw body parser in the webhooks.routes.js file itself,
+// so we can mount the entire router here.
+// Note: For this to work, the webhook router must be separate from the main api router if the main router is used after express.json()
+// To keep it simple and clean, we will mount all routes here.
+
+// All API routes are handled by the apiRouter
+// The webhook route within it has its own body parser, which will be used for that specific route.
+// For all other routes, we need the express.json() middleware.
+// To solve this, we will apply the webhook route BEFORE the global json parser.
+
+// We need to import the webhook router separately to achieve this.
+import webhooksRouter from './src/api/v1/routes/webhooks.routes.js';
+app.use('/api/v1/webhooks', webhooksRouter);
+
+// Now, we can use the JSON parser for all other routes
 app.use(express.json());
 
-//Basic route
+// And now we mount the rest of the API routes
+app.use('/api/v1', apiRouter);
+
+
+// Basic route for checking if the server is running
 app.get('/', (req, res) => {
   res.json({ 
     message: 'SCSAA Backend is running',
     version: '1.0.0',
     status: 'running'
   });
-});
-
-//Check access API route
-app.get('/api/check-access', async (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '');
-
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-
-  if (error || !user) {
-    return res.status(401).json({ authorized : false });
-  }
-
-  //Check if user exists in your database...
-  const { data: users, error: usersError } = await supabase
-    .from('users')
-    .select('id, first_name, last_name, pledge_class, is_admin, phone_number, address, dob')
-    .eq('email', user.email)
-    .single();
-
-  if (usersError || !users) {
-    return res.status(403).json({ authorized: false });
-  }
-
-  return res.json({ 
-    authorized: true, 
-    authUser: {
-      id: users.id,
-      first_name: users.first_name,
-      last_name: users.last_name,
-      pledge_class: users.pledge_class,
-      is_admin: users.is_admin,
-      phone_number: users.phone_number,
-      address: users.address,
-      dob: users.dob,
-    },
-  });
-});
-
-//DASHBOARD API REQUESTS
-app.get('/api/memberships/:userId', async (req, res) => {
-  const { userId } = req.params;
-  const { data, error } = await supabase
-    .from('memberships')
-    .select('*')
-    .eq('user_id', userId)
-    .single(); // Only one membership per user expected
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-});
-
-app.get('/api/payments/:userId', async (req, res) => {
-  const { userId } = req.params;
-  const { data, error } = await supabase
-    .from('payments')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-});
-
-app.get('/api/events', async (req, res) => {
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .order('start_time', { ascending: true });
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-});
-
-app.get('/api/announcements', async (req, res) => {
-  const { data, error } = await supabase
-    .from('announcements')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
 });
 
 app.listen(PORT, () => {

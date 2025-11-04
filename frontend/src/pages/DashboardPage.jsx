@@ -33,7 +33,7 @@ function DashboardPage() {
         if (!session) return setAuthorized(false);
 
         const token = session.access_token;
-        const response = await fetch('http://localhost:3001/api/check-access', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/check-access`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -41,7 +41,7 @@ function DashboardPage() {
         if (response.ok && data.authorized) {
           setAuthorized(true);
           setPersonData(data);
-          // ✅ use Supabase auth user.id, not data.authUser.id
+          //Use Supabase auth user.id, not data.authUser.id
           await fetchDashboardData(token, user.id);
         } else setAuthorized(false);
       } catch (err) {
@@ -53,10 +53,10 @@ function DashboardPage() {
     const fetchDashboardData = async (token, userId) => {
       try {
         const [membershipRes, paymentsRes, eventsRes, announcementsRes] = await Promise.all([
-          fetch(`http://localhost:3001/api/memberships/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`http://localhost:3001/api/payments/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/events', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/announcements', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/memberships/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/payments/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/events`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/announcements`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         const [membershipData, paymentsData, eventsData, announcementsData] = await Promise.all([
