@@ -27,7 +27,7 @@ function DashboardPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
 
-
+  //THE TIMER NEEDS TO BE FIXED - CURRENT BUG
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     let alertTimeout;
@@ -146,7 +146,7 @@ function DashboardPage() {
                 setActiveTab={setActiveTab}
                 />
             )}
-          {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} />}
+          {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
         </div>

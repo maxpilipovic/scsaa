@@ -4,11 +4,15 @@ import React, { useState } from 'react';
 const recurringPriceId = 'price_1SNgo1Ag7ZN6KXnzDFTtY6fc';
 const oneTimePriceId = 'price_1SNgpaAg7ZN6KXnztU1ZKd6T';
 
-const PaymentOptions = () => {
+const PaymentOptions = ({ userId }) => {
   const [loading, setLoading] = useState(null); // To track which button is loading
   const [error, setError] = useState(null);
 
   const handleCheckout = async (priceId) => {
+    if (!userId) {
+      setError('Could not initiate payment: User not found.');
+      return;
+    }
     setError(null);
     setLoading(priceId);
 
@@ -19,7 +23,7 @@ const PaymentOptions = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, userId }),
       });
 
       if (!response.ok) {

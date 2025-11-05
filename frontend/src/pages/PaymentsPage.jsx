@@ -3,12 +3,12 @@ import SectionCard from '../components/SectionCard';
 import PaymentTable from '../components/PaymentTable';
 import PaymentOptions from '../components/PaymentOptions';
 
-const PaymentsPage = ({ paymentHistory }) => {
+const PaymentsPage = ({ paymentHistory, user }) => {
   
   return (
     <div className="space-y-8">
       <SectionCard title="Make a Payment">
-        <PaymentOptions />
+        <PaymentOptions userId={user?.id} />
       </SectionCard>
 
       <SectionCard title="Payment History">

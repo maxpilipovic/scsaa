@@ -12,10 +12,10 @@ const RECURRING_PRICE_ID = 'price_1SNgo1Ag7ZN6KXnzDFTtY6fc';
 const ONE_TIME_PRICE_ID = 'price_1SNgpaAg7ZN6KXnztU1ZKd6T';
 
 export const createCheckoutSession = async (req, res) => {
-  const { priceId } = req.body;
+  const { priceId, userId } = req.body;
 
-  if (!priceId) {
-    return res.status(400).json({ error: 'Price ID is required.' });
+  if (!priceId || !userId) {
+    return res.status(400).json({ error: 'Price ID and User ID are required.' });
   }
 
   // Determine the mode based on the price ID provided
@@ -29,6 +29,7 @@ export const createCheckoutSession = async (req, res) => {
 
   try {
     const session = await stripe.checkout.sessions.create({
+      client_reference_id: userId, // Add this line
       line_items: [
         {
           price: priceId,
