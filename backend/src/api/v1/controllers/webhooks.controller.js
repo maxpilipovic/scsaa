@@ -6,12 +6,13 @@ dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// This is your Stripe CLI webhook secret for testing your endpoint locally.
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+//WEBHOOK FOR PAYMENTS
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
+  //GRAB EVENT HERE!!!
   let event;
 
   try {
@@ -21,63 +22,131 @@ export const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Handle the event
+  //SWITCH FOR EVENT TYPES.
   switch (event.type) {
-    case 'checkout.session.completed':
+    case 'checkout.session.completed': {
       const session = event.data.object;
       const userId = session.client_reference_id;
+      const customerId = session.customer;
 
-      if (!userId) {
-        console.error('Webhook Error: Missing userId (client_reference_id) in checkout session.');
+      if (session.mode === 'subscription') {
+        if (!userId || !customerId || !session.subscription) {
+          console.error('CRITICAL: Webhook missing data for subscription provisioning.', session.id);
+          break;
+        }
+
+        console.log(`Provisioning membership for user ${userId}...`);
+        try {
+          const subscription = await stripe.subscriptions.retrieve(session.subscription);
+          
+          //LOG!
+          console.log("Stripe subscription object:", JSON.stringify(subscription, null, 2));
+          
+          const periodEnd =
+            subscription.current_period_end ||
+            subscription.items?.data?.[0]?.current_period_end;
+
+          const expiresAt = periodEnd
+            ? new Date(periodEnd * 1000).toISOString()
+            : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString();
+            
+          const { error: membershipError } = await supabase
+            .from('memberships')
+            .upsert({
+              user_id: userId,
+              stripe_customer_id: customerId,
+              year: new Date().getFullYear(),
+              status: 'active',
+              paid_at: new Date().toISOString(),
+              expires_at: expiresAt,
+            }, { onConflict: 'user_id' });
+
+          if (membershipError) {
+            console.error('Error upserting membership:', membershipError);
+          } else {
+            console.log(`Successfully provisioned membership for user ${userId}.`);
+          }
+        } catch (error) {
+          console.error('Error during membership provisioning:', error);
+        }
+      }
+      break;
+    }
+
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object;
+      const customerId = invoice.customer;
+      
+      //Safely have a fall back
+      const paymentId = invoice.payment_intent || invoice.charge || invoice.id;
+
+      if (!customerId || !paymentId) {
+        console.error('CRITICAL: Webhook missing data for payment recording.', invoice.id);
         break;
       }
 
-      console.log(`Fulfilling order for user ${userId}...`);
-
+      console.log(`Recording payment for customer ${customerId}...`);
       try {
-        // 1. Record the payment in the `payments` table
+        const { data: membership, error: lookupError } = await supabase
+          .from('memberships')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (lookupError || !membership) {
+          console.error('Could not find user for customer ID:', customerId);
+          break;
+        }
+
         const { error: paymentError } = await supabase.from('payments').insert({
-          user_id: userId,
-          dues_amount: session.amount_total / 100, // Amount is in cents
-          processing_fee: 0, // As requested
-          stripe_payment_id: session.payment_intent,
+          user_id: membership.user_id,
+          dues_amount: invoice.amount_paid / 100,
+          processing_fee: 0,
+          stripe_payment_id: paymentId,
           status: 'succeeded',
         });
 
         if (paymentError) {
           console.error('Error inserting into payments table:', paymentError);
-          // Continue to membership update even if payment logging fails, as payment was successful
+        } else {
+          console.log(`Successfully recorded payment ${paymentId}.`);
         }
-
-        // 2. If it was a subscription, create or update the `memberships` table
-        if (session.mode === 'subscription') {
-          const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          
-          const { error: membershipError } = await supabase
-            .from('memberships')
-            .upsert({
-              user_id: userId,
-              year: new Date().getFullYear(),
-              status: 'active',
-              paid_at: new Date().toISOString(),
-              expires_at: new Date(subscription.current_period_end * 1000).toISOString(),
-            }, { onConflict: 'user_id' }); // `onConflict` ensures it updates if a record for the user_id already exists
-
-          if (membershipError) {
-            console.error('Error upserting into memberships table:', membershipError);
-          }
-        }
-        console.log(`Order fulfilled for user ${userId}.`);
       } catch (error) {
-        console.error('Error during order fulfillment:', error);
+        console.error('Error during payment recording:', error);
+      }
+      break;
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object;
+      const customerId = invoice.customer;
+
+      if (!customerId) {
+        console.error('Webhook Error: Missing customerId in invoice.payment_failed event.');
+        break;
       }
 
+      console.log(`Handling failed payment for customer ${customerId}...`);
+      try {
+        const { error } = await supabase
+          .from('memberships')
+          .update({ status: 'past_due' })
+          .eq('stripe_customer_id', customerId);
+
+        if (error) {
+          console.error('Error updating membership status for failed payment:', error);
+        }
+
+        console.log(`Membership status updated to past_due for customer ${customerId}.`);
+      } catch (error) {
+        console.error('Error during failed payment handling:', error);
+      }
       break;
-    // ... handle other event types
+    }
+    
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      // Unhandled event type
   }
 
-  // Return a 200 response to acknowledge receipt of the event
   res.send();
 };

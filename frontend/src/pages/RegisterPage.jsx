@@ -41,7 +41,7 @@ function RegisterPage() {
                 data: {
                     first_name: formData.first_name,
                     last_name: formData.last_name,
-                    pledge_class: formData.pledge_class ? String(formData.pledge_class) : null,
+                    pledge_class: formData.pledge_class ? Number(formData.pledge_class) : 0,
                     phone_number: formData.phone_number,
                     address: formData.address,
                     dob: formData.dob //Stored as YYYY-MM-DD
