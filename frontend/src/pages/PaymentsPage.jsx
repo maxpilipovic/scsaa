@@ -12,7 +12,7 @@ const PaymentsPage = ({ paymentHistory, user }) => {
       </SectionCard>
 
       <SectionCard title="Payment History">
-        <PaymentTable payments={paymentHistory} showReceipt={true} />
+        <PaymentTable payments={paymentHistory} />
       </SectionCard>
     </div>
   );

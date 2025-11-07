@@ -111,19 +111,6 @@ function DashboardPage() {
   if (!user) return <ErrorPage message="Please log in to access this page." />;
   if (user && authorized === false) return <ErrorPage message="You are not authorized to view this page." />;
 
-  // Derived fields
-  const memberInfo = membershipData
-    ? {
-        ...membershipData,
-        duesStatus: membershipData.status === "active" ? "paid" : "unpaid",
-        duesExpiration: new Date(membershipData.expires_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-      }
-    : null;
-
   return (
     <div className="flex h-screen bg-gray-50">
       <SideBar activeTab={activeTab} setActiveTab={setActiveTab} />

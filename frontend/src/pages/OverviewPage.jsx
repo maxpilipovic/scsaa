@@ -5,7 +5,7 @@ import AnnouncementsList from '../components/AnnouncementsList.jsx';
 import PaymentTable from '../components/PaymentTable.jsx';
 import EventsList from '../components/EventsList.jsx';
 import ChapterStats from '../components/ChapterStats.jsx';
-import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
+import { CreditCard, Users, Calendar} from 'lucide-react';
 
 
 const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announcements, setActiveTab }) => {
@@ -20,12 +20,16 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
   const duesExpiration = membershipData.expires_at
     ? new Date(membershipData.expires_at).toLocaleDateString()
     : 'N/A';
-  const pledgeClass = membershipData.pledge_class || 'N/A';
+  //const pledgeClass = membershipData.pledge_class || 'N/A';
   const memberSince = membershipData.year || 'N/A';
-  const duesStatus = membershipData.status?.toUpperCase() || 'UNKNOWN';
+  const duesStatus = membershipData.status?.toUpperCase() || 'NOT PAID';
 
   // Safely handle upcoming events
   const nextEvent = upcomingEvents?.length ? upcomingEvents[0] : null;
+
+
+  //Decide what color
+  const statusColor = duesStatus === 'PAID' ? 'green' : 'red';
 
   return (
     <>
@@ -35,20 +39,17 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
           title="Dues Status"
           value={duesStatus}
           subtitle={`Valid until ${duesExpiration}`}
-          icon={CreditCard}
-          color="green"
+          color={statusColor}
         />
         <StatusCard
           title="Member Since"
           value={memberSince}
-          icon={Users}
           color="blue"
         />
         <StatusCard
           title="Upcoming Events"
           value={upcomingEvents?.length || 0}
           subtitle={nextEvent ? `Next: ${new Date(nextEvent.start_time).toLocaleDateString()}` : 'No upcoming events'}
-          icon={Calendar}
           color="purple"
         />
       </div>

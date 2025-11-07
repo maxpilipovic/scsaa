@@ -130,7 +130,7 @@ export const handleStripeWebhook = async (req, res) => {
       try {
         const { error } = await supabase
           .from('memberships')
-          .update({ status: 'past_due' })
+          .update({ status: 'past_due', expires_at: null })
           .eq('stripe_customer_id', customerId);
 
         if (error) {
