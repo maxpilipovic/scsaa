@@ -55,3 +55,28 @@ export const getAnnouncements = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getTotalMembers = async (req, res) => {
+  try {
+    const { count, error } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+    if (error) throw error;
+    res.json({ totalMembers: count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getActiveMembers = async (req, res) => {
+  try {
+    const { count, error } = await supabase
+      .from('memberships')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active');
+    if (error) throw error;
+    res.json({ activeMembers: count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

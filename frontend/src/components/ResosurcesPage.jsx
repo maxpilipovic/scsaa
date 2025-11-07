@@ -3,7 +3,7 @@ import SectionCard from './SectionCard.jsx';
 import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
 
 const ResourcesPage = () => {
-  const resources = ['Chapter Bylaws', 'Meeting Minutes', 'Photo Gallery', 'Contact List'];
+  const resources = ['Chapter Bylaws', 'Meeting Minutes'];
 
   return (
     <SectionCard title="Resources & Documents">
