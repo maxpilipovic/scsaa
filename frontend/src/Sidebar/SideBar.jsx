@@ -1,8 +1,10 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 import { Home, CreditCard, FileText, Calendar, Settings, LogOut } from 'lucide-react';
 
 const SideBar = ({ activeTab, setActiveTab }) => {
-    
+  const { signOut } = useAuth();
+
   const NavButton = ({ icon: Icon, label, tabName }) => (
     <button
       onClick={() => setActiveTab(tabName)}
@@ -31,7 +33,10 @@ const SideBar = ({ activeTab, setActiveTab }) => {
 
       <div className="p-4 border-t border-indigo-800">
         <NavButton icon={Settings} label="Settings" tabName="settings" />
-        <button className="flex items-center w-full px-4 py-3 rounded-lg hover:bg-indigo-800 transition">
+        <button
+          onClick={signOut}
+          className="flex items-center w-full px-4 py-3 rounded-lg hover:bg-indigo-800 transition"
+        >
           <LogOut size={20} className="mr-3" />
           Logout
         </button>
