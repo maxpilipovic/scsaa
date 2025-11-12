@@ -11,15 +11,15 @@ import OverviewPage from './OverviewPage.jsx';
 import EventsPage from './EventsPage.jsx';
 import ResourcesPage from '../components/ResosurcesPage.jsx';
 import SuccessMessage from '../components/SuccessMessage.jsx';
-
 import PaymentsPage from './PaymentsPage.jsx';
+import SettingsPage from './SettingsPage.jsx'; // <-- Import new page
 
 function DashboardPage() {
   const { user, loading } = useAuth();
   const [authorized, setAuthorized] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  const [showSuccessMessage, setShowSuccessMessage] = useState({ show: false, message: '', type: 'success' });
+  const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
 
   const [personData, setPersonData] = useState(null);
   const [membershipData, setMembershipData] = useState(null);
@@ -27,17 +27,17 @@ function DashboardPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
 
-  //THE TIMER NEEDS TO BE FIXED - CURRENT BUG
+  // Effect to show success/error message banner based on URL params
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     let alertTimeout;
 
     const showAlert = (message, type) => {
-      setShowSuccessMessage({ show: true, message, type });
+      setAlert({ show: true, message, type });
       window.history.replaceState(null, null, window.location.pathname);
 
       alertTimeout = setTimeout(() => {
-        setShowSuccessMessage(currentAlert => ({ ...currentAlert, show: false }));
+        setAlert(currentAlert => ({ ...currentAlert, show: false }));
       }, 7000);
     };
 
@@ -52,6 +52,7 @@ function DashboardPage() {
     };
   }, []);
 
+  // Effect to check access and fetch all dashboard data
   useEffect(() => {
     if (!user) return;
 
@@ -69,7 +70,6 @@ function DashboardPage() {
         if (response.ok && data.authorized) {
           setAuthorized(true);
           setPersonData(data);
-          //Use Supabase auth user.id, not data.authUser.id
           await fetchDashboardData(token, user.id);
         } else setAuthorized(false);
       } catch (err) {
@@ -106,7 +106,6 @@ function DashboardPage() {
     checkAccess();
   }, [user]);
 
-  //Wait for data to load
   if (loading || (user && authorized === null)) return <LoadingPage />;
   if (!user) return <ErrorPage message="Please log in to access this page." />;
   if (user && authorized === false) return <ErrorPage message="You are not authorized to view this page." />;
@@ -115,12 +114,16 @@ function DashboardPage() {
     <div className="flex h-screen bg-gray-50">
       <SideBar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex-1 overflow-auto">
-        {/* Only render when header is ready */}
         {personData?.authUser && <Header membershipData={personData.authUser} />}
 
         <div className="p-8">
-
-          {showSuccessMessage.show && <SuccessMessage message={showSuccessMessage.message} type={showSuccessMessage.type} onClose={() => setShowSuccessMessage({ show: false, message: '', type: 'success' })} />}
+          {alert.show && (
+            <SuccessMessage
+              message={alert.message}
+              type={alert.type}
+              onClose={() => setAlert(prev => ({ ...prev, show: false }))}
+            />
+          )}
 
           {activeTab === "overview" &&
             personData?.authUser &&
@@ -136,6 +139,7 @@ function DashboardPage() {
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
+          {activeTab === "settings" && <SettingsPage user={user} />}
         </div>
       </div>
     </div>

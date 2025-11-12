@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
+import { supabase } from '../../../config/supabaseClient.js';
 
 dotenv.config();
 
@@ -45,5 +46,39 @@ export const createCheckoutSession = async (req, res) => {
   } catch (error) {
     console.error('Error creating checkout session:', error);
     res.status(500).json({ error: 'Failed to create checkout session.', message: error.message });
+  }
+};
+
+export const createPortalSession = async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required.' });
+  }
+
+  try {
+    // First, retrieve the user's stripe_customer_id from your database.
+    const { data: membership, error: lookupError } = await supabase
+      .from('memberships')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (lookupError || !membership || !membership.stripe_customer_id) {
+      return res.status(404).json({ error: 'Could not find a subscription for this user.' });
+    }
+
+    const customerId = membership.stripe_customer_id;
+
+    // Create a portal session for the customer.
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${YOUR_DOMAIN}/dashboard`,
+    });
+
+    res.json({ url: portalSession.url });
+  } catch (error) {
+    console.error('Error creating portal session:', error);
+    res.status(500).json({ error: 'Failed to create portal session.', message: error.message });
   }
 };

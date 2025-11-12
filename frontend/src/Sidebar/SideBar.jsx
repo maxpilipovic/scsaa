@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
+import { Home, CreditCard, FileText, Calendar, Settings, LogOut } from 'lucide-react';
 
 const SideBar = ({ activeTab, setActiveTab }) => {
     
@@ -30,10 +30,7 @@ const SideBar = ({ activeTab, setActiveTab }) => {
       </nav>
 
       <div className="p-4 border-t border-indigo-800">
-        <button className="flex items-center w-full px-4 py-3 mb-2 rounded-lg hover:bg-indigo-800 transition">
-          <Settings size={20} className="mr-3" />
-          Settings
-        </button>
+        <NavButton icon={Settings} label="Settings" tabName="settings" />
         <button className="flex items-center w-full px-4 py-3 rounded-lg hover:bg-indigo-800 transition">
           <LogOut size={20} className="mr-3" />
           Logout

@@ -16,7 +16,7 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
   //console.log(announcements);
   if (!membershipData) return null; // Wait for data
 
-  // Map DB fields to UI-friendly variable names
+  //Map DB fields to UI-friendly variable names
   const duesExpiration = membershipData.expires_at
     ? new Date(membershipData.expires_at).toLocaleDateString()
     : 'N/A';
@@ -24,12 +24,12 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
   const memberSince = membershipData.year || 'N/A';
   const duesStatus = membershipData.status?.toUpperCase() || 'NOT PAID';
 
-  // Safely handle upcoming events
+  //Safely handle upcoming events
   const nextEvent = upcomingEvents?.length ? upcomingEvents[0] : null;
 
 
   //Decide what color
-  const statusColor = duesStatus === 'PAID' ? 'green' : 'red';
+  const statusColor = duesStatus === 'ACTIVE' ? 'green' : 'red';
 
   return (
     <>
@@ -44,13 +44,13 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
         <StatusCard
           title="Member Since"
           value={memberSince}
-          color="blue"
+          color={statusColor}
         />
         <StatusCard
           title="Upcoming Events"
           value={upcomingEvents?.length || 0}
           subtitle={nextEvent ? `Next: ${new Date(nextEvent.start_time).toLocaleDateString()}` : 'No upcoming events'}
-          color="purple"
+          color={statusColor}
         />
       </div>
 
