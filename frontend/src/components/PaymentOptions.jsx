@@ -53,7 +53,11 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
     //No finally block needed as we only stop loading on error. On success, the page navigates away.
   };
 
-  const isActive = membershipStatus?.status === "active";
+  const status = membershipStatus?.status ?? "none";
+  const isActive = status === "active";
+  const isPendingCancellation = status === "pending_cancellation";
+  const isMembershipValid = isActive || isPendingCancellation;
+
   console.log("Membership Status in PaymentOptions:", membershipStatus);
   return (
     <div className="bg-white/90 backdrop-blur shadow-lg rounded-2xl p-10 max-w-md mx-auto border border-gray-200">
@@ -75,15 +79,25 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
         </div>
       )}
 
-      {/* IF USER IS ACTIVE, SHOW MESSAGE AND DO NOT ALLOW PURCHASE */}
-      {isActive ? (
+      {/* MESSAGE BOX */}
+      {isActive && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-5 rounded-xl text-center font-medium shadow-inner">
           Your membership is currently <span className="font-bold">ACTIVE</span>.
           <br />
           You will be notified before it expires.
         </div>
-      ) : (
-        //SHOW PAYMENT BUTTON IF NOT ACTIVE
+      )}
+
+      {isPendingCancellation && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-5 rounded-xl text-center font-medium shadow-inner mb-6">
+          Your membership is <span className="font-bold">Pending Cancellation</span> but still
+          <span className="font-bold"> ACTIVE</span>.
+          <br />You can resume auto-renew anytime in <span className="font-semibold">Settings</span>.
+        </div>
+      )}
+
+      {/* PAYMENT CARD (Only show if not active or pending-cancellation) */}
+      {!isMembershipValid && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 shadow-inner">
           <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
             Annual Membership
