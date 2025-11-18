@@ -8,13 +8,13 @@ function Hero() {
   return (
     <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-purple-50">
       <div className="max-w-7xl mx-auto text-center">
-        <div className="flex flex-col items-center space-y-6 mb-12">
-          <span className="bg-white text-gray-900 px-6 py-3 rounded-full text-3xl font-semibold shadow-sm">
-            Sidwell, Crook, Stewart Alumni Association
-          </span>
-          <span className="bg-white text-gray-900 px-6 py-3 rounded-full text-3xl font-semibold shadow-sm">
-            Beta-Gamma Chapter
-          </span>
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-serif font-bold text-gray-900">
+            Sidwell, Crook & Stewart
+          </h1>
+          <p className="mt-2 text-xl sm:text-2xl font-serif text-gray-700">
+            Alumni Association · Beta-Gamma Chapter
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button

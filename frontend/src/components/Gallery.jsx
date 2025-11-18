@@ -1,10 +1,24 @@
-import React from 'react';
-import image1 from '../assets/image1.JPEG';
+//import React from 'react';
+//import image1 from '../assets/image1.JPEG';
 import image2 from '../assets/image2.JPG';
-import image3 from '../assets/image3.JPG';
-import image4 from '../assets/image4.JPG';
-import image5 from '../assets/image5.JPG';
+//import image3 from '../assets/image3.JPG';
+//import image4 from '../assets/image4.JPG';
+//import image5 from '../assets/image5.JPG';
 //import image6 from '../assets/image6.JPG';
+import image7 from '../assets/image7.JPG';
+//import image8 from '../assets/image8.JPG';
+//import image9 from '../assets/image9.JPG';
+import image10 from '../assets/image10.JPG';
+//import image11 from '../assets/image11.JPG';
+//import image12 from '../assets/image12.JPG';
+import image13 from '../assets/image13.JPG';
+//import image14 from '../assets/image14.JPG';
+//import image15 from '../assets/image15.JPG';
+//import image16 from '../assets/image16.JPG';
+//import image17 from '../assets/image17.JPG';
+//import image18 from '../assets/image18.JPG';
+//import image19 from '../assets/image19.JPG';
+import image20 from '../assets/image20.JPG';
 
 function Gallery() {
   return (
@@ -26,7 +40,7 @@ function Gallery() {
             <div className="absolute inset-0 bg-purple-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
               <div className="text-white">
                 <h3 className="font-bold text-xl mb-1">2024 Annual Reunion</h3>
-                <p className="text-sm">Over 200 brothers gathered to celebrate our legacy</p>
+                <p className="text-sm">Over 40 brothers attended</p>
               </div>
             </div>
           </div>
@@ -34,13 +48,13 @@ function Gallery() {
           {/* Photo 2 */}
           <div className="relative overflow-hidden rounded-2xl group">
             <img
-              src={image1}
+              src={image7}
               alt="Homecoming Game"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-purple-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
               <div className="text-white">
-                <h3 className="font-bold text-lg">Homecoming 2024</h3>
+                <h3 className="font-bold text-lg">1977 Greek Week Games</h3>
               </div>
             </div>
           </div>
@@ -48,13 +62,13 @@ function Gallery() {
           {/* Photo 3 */}
           <div className="relative overflow-hidden rounded-2xl group">
             <img
-              src={image3}
+              src={image13}
               alt="Service Project"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-purple-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
               <div className="text-white">
-                <h3 className="font-bold text-lg">Community Service</h3>
+                <h3 className="font-bold text-lg">2018</h3>
               </div>
             </div>
           </div>
@@ -62,13 +76,13 @@ function Gallery() {
           {/* Photo 4 */}
           <div className="relative overflow-hidden rounded-2xl group">
             <img
-              src={image4}
+              src={image20}
               alt="Golf Tournament"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-purple-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
               <div className="text-white">
-                <h3 className="font-bold text-lg">Alumni Golf Classic</h3>
+                <h3 className="font-bold text-lg">Tugs 2012</h3>
               </div>
             </div>
           </div>
@@ -76,13 +90,13 @@ function Gallery() {
           {/* Photo 5 */}
           <div className="lg:col-span-2 relative overflow-hidden rounded-2xl group">
             <img
-              src={image5}
+              src={image10}
               alt="Founders Day Celebration"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-purple-900/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
               <div className="text-white">
-                <h3 className="font-bold text-lg">Founders Day 2024</h3>
+                <h3 className="font-bold text-lg">Greek Week 1985</h3>
               </div>
             </div>
           </div>
