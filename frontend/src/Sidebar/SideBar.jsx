@@ -4,13 +4,16 @@ import { Home, CreditCard, FileText, Calendar, Settings, LogOut } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const SideBar = ({ activeTab, setActiveTab }) => {
+const SideBar = ({ activeTab, setActiveTab, closeSidebar }) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      if (closeSidebar) {
+        closeSidebar();
+      }
       navigate('/');
 
       //Add some notifications everywhere bro
@@ -27,7 +30,12 @@ const SideBar = ({ activeTab, setActiveTab }) => {
 
   const NavButton = ({ icon: Icon, label, tabName }) => (
     <button
-      onClick={() => setActiveTab(tabName)}
+      onClick={() => {
+        setActiveTab(tabName);
+        if (closeSidebar) {
+          closeSidebar();
+        }
+      }}
       className={`flex items-center w-full px-4 py-3 mb-2 rounded-lg transition ${
         activeTab === tabName ? 'bg-indigo-800' : 'hover:bg-indigo-800'
       }`}

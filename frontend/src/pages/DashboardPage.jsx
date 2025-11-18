@@ -12,12 +12,14 @@ import EventsPage from './EventsPage.jsx';
 import ResourcesPage from '../components/ResosurcesPage.jsx';
 import SuccessMessage from '../components/SuccessMessage.jsx';
 import PaymentsPage from './PaymentsPage.jsx';
-import SettingsPage from './SettingsPage.jsx'; // <-- Import new page
+import SettingsPage from './SettingsPage.jsx';
+import { Menu, X } from 'lucide-react'; // Import Menu and X icons
 
 function DashboardPage() {
   const { user, loading } = useAuth();
   const [authorized, setAuthorized] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for sidebar visibility
 
   const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
 
@@ -112,8 +114,35 @@ function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <SideBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Sidebar for larger screens */}
+      <div className="hidden md:flex">
+        <SideBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      </div>
+
+      {/* Mobile Sidebar and Overlay */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-40 flex md:hidden">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-opacity-50"
+            onClick={() => setIsSidebarOpen(false)}
+          ></div>
+
+          {/* Sidebar content */}
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-indigo-900 z-50">
+            <SideBar activeTab={activeTab} setActiveTab={setActiveTab} closeSidebar={() => setIsSidebarOpen(false)} />
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-auto">
+        {/* Hamburger menu button for smaller screens */}
+        <div className="md:hidden p-4">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-500 focus:outline-none">
+            {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
         {personData?.authUser && <Header membershipData={personData.authUser} />}
 
         <div className="p-8">
