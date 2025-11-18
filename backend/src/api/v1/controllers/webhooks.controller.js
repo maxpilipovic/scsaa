@@ -1,3 +1,6 @@
+
+// WRITTEN BY CLAUDE CODE. HAD ISSUES WITH STRIPE WEBHOOKS!
+
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import { supabase } from '../../../config/supabaseClient.js';
@@ -5,100 +8,90 @@ import { supabase } from '../../../config/supabaseClient.js';
 dotenv.config();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-//WEBHOOK FOR PAYMENTS
+// Helper: unix seconds → ISO string
+const toIso = (unixSeconds) =>
+  unixSeconds ? new Date(unixSeconds * 1000).toISOString() : null;
+
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
-
-  //GRAB EVENT HERE!!!
   let event;
 
   try {
+    // req.body is raw because of express.raw()
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.error(`?? Webhook signature verification failed.`, err.message);
+    console.error('❌ Webhook verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  //SWITCH FOR EVENT TYPES.
   switch (event.type) {
+    // ---------------------------------------------------------
+    // 1) FIRST SUBSCRIPTION PURCHASE
+    // ---------------------------------------------------------
     case 'checkout.session.completed': {
       const session = event.data.object;
+
+      if (session.mode !== 'subscription') break;
+
       const userId = session.client_reference_id;
       const customerId = session.customer;
+      const subscriptionId = session.subscription;
 
-      if (session.mode === 'subscription') {
-        if (!userId || !customerId || !session.subscription) {
-          console.error('CRITICAL: Webhook missing data for subscription provisioning.', session.id);
-          break;
-        }
+      if (!userId || !customerId || !subscriptionId) break;
 
-        console.log(`Provisioning membership for user ${userId}...`);
-        try {
-          const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          
-          //LOG!
-          console.log("Stripe subscription object:", JSON.stringify(subscription, null, 2));
-          
-          const periodEnd =
-            subscription.current_period_end ||
-            subscription.items?.data?.[0]?.current_period_end;
+      try {
+        const sub = await stripe.subscriptions.retrieve(subscriptionId);
 
-          const expiresAt = periodEnd
-            ? new Date(periodEnd * 1000).toISOString()
-            : new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString();
-            
-          const { error: membershipError } = await supabase
-            .from('memberships')
-            .upsert({
-              user_id: userId,
-              stripe_customer_id: customerId,
-              year: new Date().getFullYear(),
-              status: 'active',
-              paid_at: new Date().toISOString(),
-              expires_at: expiresAt,
-            }, { onConflict: 'user_id' });
+        const item = sub.items.data[0];
+        const periodEnd = item.current_period_end;
+        const expiresAt = toIso(periodEnd);
 
-          if (membershipError) {
-            console.error('Error upserting membership:', membershipError);
-          } else {
-            console.log(`Successfully provisioned membership for user ${userId}.`);
-          }
-        } catch (error) {
-          console.error('Error during membership provisioning:', error);
-        }
+        await supabase.from('memberships').upsert(
+          {
+            user_id: userId,
+            stripe_customer_id: customerId,
+            year: new Date().getFullYear(),
+            status: 'active',
+            paid_at: new Date().toISOString(),
+            expires_at: expiresAt,
+          },
+          { onConflict: 'user_id' }
+        );
+
+        console.log(`✔ Membership provisioned for ${userId}`);
+      } catch (error) {
+        console.error('Error provisioning subscription:', error);
       }
+
       break;
     }
 
+    // ---------------------------------------------------------
+    // 2) RENEWAL PAYMENT SUCCEEDED
+    // ---------------------------------------------------------
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object;
       const customerId = invoice.customer;
-      
-      //Safely have a fall back
-      const paymentId = invoice.payment_intent || invoice.charge || invoice.id;
 
-      if (!customerId || !paymentId) {
-        console.error('CRITICAL: Webhook missing data for payment recording.', invoice.id);
-        break;
-      }
+      const paymentId =
+        invoice.payment_intent || invoice.charge || invoice.id;
 
-      console.log(`Recording payment for customer ${customerId}...`);
+      if (!customerId || !paymentId) break;
+
+      console.log(`Recording payment for ${customerId}`);
+
       try {
-        const { data: membership, error: lookupError } = await supabase
+        const { data: membership } = await supabase
           .from('memberships')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single();
 
-        if (lookupError || !membership) {
-          console.error('Could not find user for customer ID:', customerId);
-          break;
-        }
+        if (!membership) break;
 
-        const { error: paymentError } = await supabase.from('payments').insert({
+        await supabase.from('payments').insert({
           user_id: membership.user_id,
           dues_amount: invoice.amount_paid / 100,
           processing_fee: 0,
@@ -106,46 +99,121 @@ export const handleStripeWebhook = async (req, res) => {
           status: 'succeeded',
         });
 
-        if (paymentError) {
-          console.error('Error inserting into payments table:', paymentError);
-        } else {
-          console.log(`Successfully recorded payment ${paymentId}.`);
-        }
+        console.log(`✔ Payment recorded (${paymentId})`);
       } catch (error) {
-        console.error('Error during payment recording:', error);
+        console.error('Error recording payment:', error);
       }
+
       break;
     }
 
+    // ---------------------------------------------------------
+    // 3) PAYMENT FAILED
+    // ---------------------------------------------------------
     case 'invoice.payment_failed': {
       const invoice = event.data.object;
       const customerId = invoice.customer;
 
-      if (!customerId) {
-        console.error('Webhook Error: Missing customerId in invoice.payment_failed event.');
-        break;
-      }
+      if (!customerId) break;
 
-      console.log(`Handling failed payment for customer ${customerId}...`);
-      try {
-        const { error } = await supabase
-          .from('memberships')
-          .update({ status: 'past_due', expires_at: null })
-          .eq('stripe_customer_id', customerId);
+      console.log(`❌ Payment failed for: ${customerId}`);
 
-        if (error) {
-          console.error('Error updating membership status for failed payment:', error);
-        }
+      await supabase
+        .from('memberships')
+        .update({ status: 'past_due', expires_at: null })
+        .eq('stripe_customer_id', customerId);
 
-        console.log(`Membership status updated to past_due for customer ${customerId}.`);
-      } catch (error) {
-        console.error('Error during failed payment handling:', error);
-      }
       break;
     }
-    
+
+    // ---------------------------------------------------------
+    // 4) SUBSCRIPTION UPDATED (renewed, canceled, uncanceled)
+    // ---------------------------------------------------------
+    case 'customer.subscription.updated': {
+      const incoming = event.data.object;
+      const customerId = incoming.customer;
+
+      if (!customerId) break;
+
+      try {
+        // Get the FULL subscription object
+        const sub = await stripe.subscriptions.retrieve(incoming.id);
+
+        const stripeStatus = sub.status; // 'active', 'canceled', etc.
+        const item = sub.items.data[0];
+
+        const periodEndUnix =
+          sub.current_period_end ??
+          item.current_period_end ??
+          null;
+
+        const expiresAt = toIso(periodEndUnix);
+
+        // -----------------------------------------
+        // CORRECT CANCELLATION DETECTION
+        // -----------------------------------------
+        const isCancelScheduled =
+          sub.cancel_at || sub.cancel_at_period_end;
+
+        let membershipStatus;
+
+        if (stripeStatus === 'canceled') {
+          // Fully canceled — subscription ended
+          membershipStatus = 'canceled';
+        } else if (stripeStatus === 'active' && isCancelScheduled) {
+          // Will end at period end
+          membershipStatus = 'pending_cancellation';
+        } else if (stripeStatus === 'active') {
+          // Fully active, auto-renewing
+          membershipStatus = 'active';
+        } else {
+          membershipStatus = stripeStatus; // fallback (e.g. past_due)
+        }
+
+        console.log('🔄 SUBSCRIPTION UPDATED:', {
+          stripeStatus,
+          cancel_at: sub.cancel_at,
+          cancel_at_period_end: sub.cancel_at_period_end,
+          current_period_end: expiresAt,
+          membershipStatus,
+        });
+
+        await supabase
+          .from('memberships')
+          .update({
+            status: membershipStatus,
+            expires_at: membershipStatus === 'canceled' ? null : expiresAt,
+          })
+          .eq('stripe_customer_id', customerId);
+
+        console.log(`✔ Updated membership for ${customerId}`);
+      } catch (err) {
+        console.error('Error updating subscription:', err);
+      }
+
+      break;
+    }
+
+    // ---------------------------------------------------------
+    // 5) SUBSCRIPTION DELETED (end-of-period hit)
+    // ---------------------------------------------------------
+    case 'customer.subscription.deleted': {
+      const sub = event.data.object;
+      const customerId = sub.customer;
+      if (!customerId) break;
+
+      console.log(`❌ Subscription deleted for: ${customerId}`);
+
+      await supabase
+        .from('memberships')
+        .update({ status: 'canceled', expires_at: null })
+        .eq('stripe_customer_id', customerId);
+
+      break;
+    }
+
     default:
-      // Unhandled event type
+      console.log(`Unhandled event: ${event.type}`);
   }
 
   res.send();

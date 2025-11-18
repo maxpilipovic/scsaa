@@ -22,14 +22,25 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
     : 'N/A';
   //const pledgeClass = membershipData.pledge_class || 'N/A';
   const memberSince = membershipData.year || 'N/A';
-  const duesStatus = membershipData.status?.toUpperCase() || 'NOT PAID';
+  const duesStatus = membershipData.status?.toUpperCase(); //To uppercase
 
   //Safely handle upcoming events
   const nextEvent = upcomingEvents?.length ? upcomingEvents[0] : null;
 
+  const statusColors = {
+    INCOMPLETE: "green", //Inital payment fails
+    INCOMPLETE_EXPIRED: "orange", //First invoice not paid within 23 hours
+    TRIALING: "blue", //Trial period (does not exist in my system)
+    ACTIVE: "green", //Trial period is over...
+    PAST_DUE: "yellow", //Payment is required in subscription, but failed.
+    CANCELED: "red", //Subscription has been cancelled (Exhausted all retries)
+    PENDING_CANCELLATION: "red", //Subscription has been cancelled (Exhausted all retries)
+    UNPAID: "red", //Subscription has been cancelled (Exhausted all retries)
+  };
 
-  //Decide what color
-  const statusColor = duesStatus === 'ACTIVE' ? 'green' : 'red';
+  //Decide what color - fallback black
+  const statusColor = statusColors[duesStatus] || "black";
+
 
   return (
     <>
