@@ -28,8 +28,9 @@ function DashboardPage() {
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Effect to show success/error message banner based on URL params
+  //Effect to show success/error message banner based on URL params
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     let alertTimeout;
@@ -54,7 +55,7 @@ function DashboardPage() {
     };
   }, []);
 
-  // Effect to check access and fetch all dashboard data
+  //Effect to check access and fetch all dashboard data
   useEffect(() => {
     if (!user) return;
 
@@ -82,24 +83,28 @@ function DashboardPage() {
 
     const fetchDashboardData = async (token, userId) => {
       try {
-        const [membershipRes, paymentsRes, eventsRes, announcementsRes] = await Promise.all([
+        const [membershipRes, paymentsRes, eventsRes, announcementsRes, adminStatusRes] = await Promise.all([
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/memberships/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/payments/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/events`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/announcements`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getAdminStatus?userId=${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
-        const [membershipData, paymentsData, eventsData, announcementsData] = await Promise.all([
+        const [membershipData, paymentsData, eventsData, announcementsData, adminData] = await Promise.all([
           membershipRes.json(),
           paymentsRes.json(),
           eventsRes.json(),
           announcementsRes.json(),
+          adminStatusRes.json(),
         ]);
 
         setMembershipData(membershipData);
         setPaymentHistory(paymentsData);
         setUpcomingEvents(eventsData);
         setAnnouncements(announcementsData);
+        setIsAdmin(adminData.is_admin);
+        console.log("Admin Status:", adminData.is_admin);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       }

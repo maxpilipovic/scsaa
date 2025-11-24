@@ -95,3 +95,18 @@ export const getMembershipStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getAdminStatus = async (req, res) => {
+  const { userId } = req.query;
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('id', userId)
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

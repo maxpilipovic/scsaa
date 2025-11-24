@@ -7,6 +7,7 @@ import {
   getTotalMembers,
   getActiveMembers,
   getMembershipStatus,
+  getAdminStatus,
 } from '../controllers/dashboard.controller.js';
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router.get('/announcements', getAnnouncements);
 router.get('/getTotalMembers', getTotalMembers);
 router.get('/getActiveMembers', getActiveMembers);
 router.get('/getMembershipStatus', getMembershipStatus);
+router.get('/getAdminStatus', getAdminStatus);
 
 export default router;
