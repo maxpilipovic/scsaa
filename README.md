@@ -12,7 +12,12 @@ This project provides a web platform for alumni of the Sigma Pi Beta-Gamma chapt
 - Access a member dashboard to see payment history  
 - Admins can view all members and payment statuses  
 
-The MVP focuses on **dues payment, authentication, and member dashboards**.  
+## Technical Implementation
+- Developed a responsive, single-page application (SPA) frontend using React and React Router.
+- Implemented a robust, token-based authentication system using Supabase Auth.
+- Created custom authentication middleware to secure all sensitive backend endpoints.
+- Integrated the Stripe API for secure payment processing of annual dues.
+- Designed a system (webbook) to listen to stripe events.
 
 ---
 
@@ -23,4 +28,3 @@ The MVP focuses on **dues payment, authentication, and member dashboards**.
 | Backend | Node.js + Express |
 | Database / Auth | Supabase (PostgreSQL + Auth) |
 | Payments | Stripe |
-| Hosting | Vercel / Render (optional for production) |
