@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StatusCard = ({ title, value, subtitle,color }) => {
+const StatusCard = ({ title, value, subtitle, color = 'green' }) => {
   const colorClasses = {
     green: 'border-green-500 bg-green-100 text-green-600',
     blue: 'border-blue-500 bg-blue-100 text-blue-600',

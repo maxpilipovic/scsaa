@@ -89,7 +89,7 @@ function DashboardPage() {
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/payments/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/events`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/announcements`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getAdminStatus?userId=${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getAdminStatus`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         const [membershipData, paymentsData, eventsData, announcementsData, adminData] = await Promise.all([
@@ -130,7 +130,7 @@ function DashboardPage() {
         <div className="fixed inset-0 z-40 flex md:hidden">
           {/* Overlay */}
           <div
-            className="absolute inset-0 bg-opacity-50"
+            className="absolute inset-0 bg-black bg-opacity-50"
             onClick={() => setIsSidebarOpen(false)}
           ></div>
 

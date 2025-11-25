@@ -97,7 +97,7 @@ export const getMembershipStatus = async (req, res) => {
 };
 
 export const getAdminStatus = async (req, res) => {
-  const { userId } = req.query;
+  const userId = req.user.id; // GET userId from authenticated user
   try {
     const { data, error } = await supabase
       .from('users')
@@ -106,6 +106,55 @@ export const getAdminStatus = async (req, res) => {
       .single();
     if (error) throw error;
     res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getRecentSignups = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, first_name, last_name, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5); // Adjust limit as needed
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getTotalRevenue = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('dues_amount')
+      .eq('status', 'succeeded'); 
+
+    if (error) throw error;
+
+    const totalRevenue = data.reduce((sum, payment) => sum + payment.dues_amount, 0);
+    res.json({ totalRevenue });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getMonthlyRecurringRevenue = async (req, res) => {
+  try {
+
+    const { count, error: activeMembersError } = await supabase
+      .from('memberships')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active');
+
+    if (activeMembersError) throw activeMembersError;
+
+    const yearlyRecurringAmountPerMember = 50; //Example: $50/year
+
+    const mrr = count * yearlyRecurringAmountPerMember;
+    res.json({ mrr });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
