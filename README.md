@@ -7,10 +7,10 @@ A full-stack web application for Sigma Pi Beta-Gamma alumni to register, pay due
 
 ## Project Overview
 This project provides a web platform for alumni of the Sigma Pi Beta-Gamma chapter to:  
-- Register and log in securely  
-- Pay annual dues with optional processing fees  
-- Access a member dashboard to see payment history  
-- Admins can view all members and payment statuses  
+- Register and log in securely.
+- Pay annual dues with optional processing fees.
+- Access a member dashboard to see payment history.
+- Admins can view all members and payment statuses. 
 
 ## Technical Implementation
 - Developed a responsive, single-page application (SPA) frontend using React and React Router.
