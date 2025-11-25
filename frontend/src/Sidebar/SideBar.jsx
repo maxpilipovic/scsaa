@@ -24,7 +24,6 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
 
     } catch (error) {
       console.error('Error signing out:', error);
-      // Optionally, show an error message to the user
     }
   };
 

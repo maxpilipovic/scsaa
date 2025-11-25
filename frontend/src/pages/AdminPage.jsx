@@ -4,7 +4,8 @@ import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
 import SectionCard from '../components/SectionCard';
 import StatusCard from '../components/StatusCard';
-import { supabase } from '../lib/supabaseClient'; //Import supabase for session
+import UserTable from '../components/UserTable'; // Import the new UserTable component
+import { supabase } from '../lib/supabaseClient';
 
 function AdminPage() {
   const { user } = useAuth();
@@ -17,6 +18,8 @@ function AdminPage() {
     totalRevenue: 0,
     mrr: 0,
   });
+  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchAdminDashboardData = async () => {
@@ -34,7 +37,6 @@ function AdminPage() {
           return;
         }
         const token = session.access_token;
-
         const headers = { Authorization: `Bearer ${token}` };
 
         const [
@@ -43,12 +45,14 @@ function AdminPage() {
           recentSignupsRes,
           totalRevenueRes,
           mrrRes,
+          usersRes, // Add users fetch
         ] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getTotalMembers`, { headers }),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getActiveMembers`, { headers }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getTotalMembers`), // This is public now, but keeping headers for consistency
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getActiveMembers`), // This is public now
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/recentSignups`, { headers }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/totalRevenue`, { headers }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/mrr`, { headers }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/users`, { headers }), // Fetch all users
         ]);
 
         const [
@@ -57,12 +61,14 @@ function AdminPage() {
           recentSignupsData,
           totalRevenueData,
           mrrData,
+          usersData, // Add users data
         ] = await Promise.all([
           totalMembersRes.json(),
           activeMembersRes.json(),
           recentSignupsRes.json(),
           totalRevenueRes.json(),
           mrrRes.json(),
+          usersRes.json(), // Parse users JSON
         ]);
 
         setDashboardData({
@@ -72,6 +78,7 @@ function AdminPage() {
           totalRevenue: totalRevenueData.totalRevenue,
           mrr: mrrData.mrr,
         });
+        setUsers(usersData); // Set users state
       } catch (err) {
         console.error('Error fetching admin dashboard data:', err);
         setError('Failed to fetch dashboard data.');
@@ -83,40 +90,62 @@ function AdminPage() {
     fetchAdminDashboardData();
   }, [user]);
 
+  const filteredUsers = users.filter(u => {
+    const fullName = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
+    const email = u.email?.toLowerCase() || '';
+    const pledgeClass = String(u.pledge_class || '').toLowerCase(); // Convert to string before calling toLowerCase
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    
+    return fullName.includes(lowerCaseSearchTerm) || email.includes(lowerCaseSearchTerm) || pledgeClass.includes(lowerCaseSearchTerm);
+  });
+
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage message={error} />;
-
-  //Add a check for isAdmin here if this page should only be accessible by admins
-  
 
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatusCard title="Total Members" value={dashboardData.totalMembers} />
-        <StatusCard title="Active Members" value={`$${dashboardData.totalRevenue.toFixed(2)}`} />
-        <StatusCard title="Monthly Recurring Revenue" value={`$${dashboardData.mrr.toFixed(2)}`} />
+        <StatusCard title="Total Members" value={dashboardData.totalMembers} color="green" />
+        <StatusCard title="Total Revenue" value={`${dashboardData.totalRevenue.toFixed(2)}`} color="green" />
+        <StatusCard title="Monthly Recurring Revenue" value={`${dashboardData.mrr.toFixed(2)}`} color="green" />
       </div>
 
-      <SectionCard title="Recent Sign-ups">
-        {dashboardData.recentSignups.length > 0 ? (
-          <ul className="divide-y divide-gray-200">
-            {dashboardData.recentSignups.map((signup) => (
-              <li key={signup.id} className="py-3 flex justify-between items-center">
-                <span>{signup.first_name} {signup.last_name}</span>
-                <span className="text-sm text-gray-500">
-                  {new Date(signup.created_at).toLocaleDateString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-500">No recent sign-ups.</p>
-        )}
-      </SectionCard>
+      <div className="space-y-8">
+        <SectionCard title="User Management">
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search by name, email, or pledge class..."
+              className="w-full p-2 border border-gray-300 rounded-md"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <UserTable users={filteredUsers} />
+        </SectionCard>
+
+        <SectionCard title="Recent Sign-ups">
+          {dashboardData.recentSignups.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {dashboardData.recentSignups.map((signup) => (
+                <li key={signup.id} className="py-3 flex justify-between items-center">
+                  <span>{signup.first_name} {signup.last_name}</span>
+                  <span className="text-sm text-gray-500">
+                    {new Date(signup.created_at).toLocaleDateString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No recent sign-ups.</p>
+          )}
+        </SectionCard>
+      </div>
     </div>
   );
 }
 
 export default AdminPage;
+

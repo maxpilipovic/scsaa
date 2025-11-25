@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // Import useLocation
 import { useAuth } from '../context/AuthContext';
 import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
@@ -14,13 +15,14 @@ import SuccessMessage from '../components/SuccessMessage.jsx';
 import PaymentsPage from './PaymentsPage.jsx';
 import SettingsPage from './SettingsPage.jsx';
 import AdminPage from './AdminPage.jsx';
-import { Menu, X } from 'lucide-react'; // Import Menu and X icons
+import { Menu, X } from 'lucide-react'; //Import Menu and X icons
 
 function DashboardPage() {
   const { user, loading } = useAuth();
+  const location = useLocation(); //Get location object (THIS IS FOR READING NAVIGATION STATE, E.G., DEFAULT TAB)
   const [authorized, setAuthorized] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for sidebar visibility
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); //State for sidebar visibility
 
   const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
 
@@ -30,6 +32,15 @@ function DashboardPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  //Effect to handle incoming navigation state for DEFAULT TAB
+  useEffect(() => {
+    if (location.state?.defaultTab) {
+      setActiveTab(location.state.defaultTab);
+      // Clean the state from location history
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state]);
 
   //Effect to show success/error message banner based on URL params
   useEffect(() => {
