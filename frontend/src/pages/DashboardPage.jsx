@@ -13,6 +13,7 @@ import ResourcesPage from '../components/ResosurcesPage.jsx';
 import SuccessMessage from '../components/SuccessMessage.jsx';
 import PaymentsPage from './PaymentsPage.jsx';
 import SettingsPage from './SettingsPage.jsx';
+import AdminPage from './AdminPage.jsx';
 import { Menu, X } from 'lucide-react'; // Import Menu and X icons
 
 function DashboardPage() {
@@ -121,7 +122,7 @@ function DashboardPage() {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar for larger screens */}
       <div className="hidden md:flex">
-        <SideBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <SideBar activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} />
       </div>
 
       {/* Mobile Sidebar and Overlay */}
@@ -135,7 +136,7 @@ function DashboardPage() {
 
           {/* Sidebar content */}
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-indigo-900 z-50">
-            <SideBar activeTab={activeTab} setActiveTab={setActiveTab} closeSidebar={() => setIsSidebarOpen(false)} />
+            <SideBar activeTab={activeTab} setActiveTab={setActiveTab} closeSidebar={() => setIsSidebarOpen(false)} isAdmin={isAdmin} />
           </div>
         </div>
       )}
@@ -170,9 +171,11 @@ function DashboardPage() {
                 setActiveTab={setActiveTab}
                 />
             )}
+          
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
+          {activeTab === "Admin" && isAdmin && <AdminPage />}
           {activeTab === "settings" && <SettingsPage user={user} />}
         </div>
       </div>

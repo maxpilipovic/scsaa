@@ -1,10 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Home, CreditCard, FileText, Calendar, Settings, LogOut } from 'lucide-react';
+import { Home, CreditCard, FileText, Calendar, Settings, LogOut, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const SideBar = ({ activeTab, setActiveTab, closeSidebar }) => {
+const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -61,6 +61,7 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar }) => {
 
       <div className="p-4 border-t border-indigo-800">
         <NavButton icon={Settings} label="Settings" tabName="settings" />
+        {isAdmin && <NavButton icon={Shield} label="Admin" tabName="Admin" />}
         <button
           onClick={handleSignOut}
           className="flex items-center w-full px-4 py-3 rounded-lg hover:bg-indigo-800 transition"
