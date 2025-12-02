@@ -4,8 +4,9 @@ import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
 import SectionCard from '../components/SectionCard';
 import StatusCard from '../components/StatusCard';
-import UserTable from '../components/UserTable'; // Import the new UserTable component
+import UserTable from '../components/UserTable'; //Import the new UserTable component
 import { supabase } from '../lib/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 function AdminPage() {
   const { user } = useAuth();
@@ -20,6 +21,8 @@ function AdminPage() {
   });
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAdminDashboardData = async () => {
@@ -45,14 +48,14 @@ function AdminPage() {
           recentSignupsRes,
           totalRevenueRes,
           mrrRes,
-          usersRes, // Add users fetch
+          usersRes, //Add users fetch
         ] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getTotalMembers`), // This is public now, but keeping headers for consistency
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getActiveMembers`), // This is public now
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getTotalMembers`), //This is public now, but keeping headers for consistency
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/getActiveMembers`), //This is public now
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/recentSignups`, { headers }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/totalRevenue`, { headers }),
           fetch(`${import.meta.env.VITE_API_URL}/api/v1/dashboard/mrr`, { headers }),
-          fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/users`, { headers }), // Fetch all users
+          fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/users`, { headers }), //Fetch all users
         ]);
 
         const [
@@ -111,8 +114,15 @@ function AdminPage() {
         <StatusCard title="Total Revenue" value={`${dashboardData.totalRevenue.toFixed(2)}`} color="green" />
         <StatusCard title="Yearly Recurring Revenue" value={`${dashboardData.mrr.toFixed(2)}`} color="green" />
       </div>
-
+      
       <div className="space-y-8">
+
+        <SectionCard title="Announcements & Events">
+          <p className="text-gray-500">Create, edit and delete announcements and events directly from the admin dashboard.</p>
+          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/announcements')}>Manage Announcements</button>
+          <button className="mt-4 ml-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/events')}>Manage Events</button>
+        </SectionCard>
+
         <SectionCard title="User Management">
           <div className="mb-4">
             <input

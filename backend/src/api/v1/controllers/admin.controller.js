@@ -130,3 +130,49 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ message: 'Server error while updating user.', error: error.message });
   }
 };
+
+export const getAllEvents = async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('events').select('*').order('start_time', { ascending: true });
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while fetching events.', error: error.message });
+  }
+};
+
+export const createEvent = async (req, res) => {
+  const { name, description, location, start_time, end_date, user_id } = req.body;
+  try {
+    const { data, error } = await supabase.from('events').insert([{ name, description, location, start_time, end_date, user_id }]).select().single();
+    if (error) throw error;
+    res.status(201).json({ message: 'Event created successfully.', event: data });
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ message: 'Server error while creating event.', error: error.message });
+  }
+};
+
+export const updateEvent = async (req, res) => {
+  const { eventId } = req.params;
+  const { name, description, start_time, end_date, location } = req.body;
+  try {
+    const { data, error } = await supabase.from('events').update({ name, description, start_time, end_date, location }).eq('event_id', eventId).select().single();
+    if (error) throw error;
+    res.status(200).json({ message: 'Event updated successfully.', event: data });
+  } catch (error) {
+    console.error(`Error updating event with ID ${eventId}:`, error);
+    res.status(500).json({ message: 'Server error while updating event.', error: error.message });
+  }
+};
+
+export const deleteEvent = async (req, res) => {
+  const { eventId } = req.params;
+  try {
+    const { error } = await supabase.from('events').delete().eq('event_id', eventId);
+    if (error) throw error;
+    res.status(200).json({ message: 'Event deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while deleting event.', error: error.message });
+  }
+};
