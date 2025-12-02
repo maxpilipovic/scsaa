@@ -1,11 +1,8 @@
 import { supabase } from '../../../config/supabaseClient.js';
 
-// @desc    Get all users from the public 'persons' table
-// @route   GET /api/v1/admin/users
-// @access  Private/Admin
 export const getAllUsers = async (req, res) => {
   try {
-    // Fetch all users from the 'persons' table
+    //Fetch all users from the 'persons' table
     const { data: users, error } = await supabase
       .from('users')
       .select('*');
@@ -21,9 +18,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// @desc    Get a single user by ID
-// @route   GET /api/v1/admin/users/:userId
-// @access  Private/Admin
 export const getUserById = async (req, res) => {
   const { userId } = req.params;
 
@@ -35,7 +29,7 @@ export const getUserById = async (req, res) => {
       .single();
 
     if (error) {
-      // If .single() finds no rows, it returns an error, which we can use to send a 404
+      //If .single() finds no rows, it returns an error, which we can use to send a 404
       if (error.code === 'PGRST116') {
         return res.status(404).json({ message: 'User not found.' });
       }
@@ -50,5 +44,54 @@ export const getUserById = async (req, res) => {
   } catch (error) {
     console.error(`Error fetching user with ID ${userId}:`, error);
     res.status(500).json({ message: 'Server error while fetching user.', error: error.message });
+  }
+};
+
+export const getUserPaymentsById = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const { data: payments, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) {
+      throw error;
+    }
+
+    res.status(200).json(payments);
+  } catch (error) {
+    console.error(`Error fetching payments for user with ID ${userId}:`, error);
+    res.status(500).json({ message: 'Server error while fetching payments.', error: error.message });
+  }
+};
+
+export const getUserMembershipStatusById = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const { data: membershipStatus, error } = await supabase
+      .from('memberships')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      //If .single() finds no rows, it returns an error, which we can use to send a 404
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ message: 'Membership status not found.' });
+      }
+      throw error;
+    }
+
+    if (!membershipStatus) {
+      return res.status(404).json({ message: 'Membership status not found.' });
+    }
+
+    res.status(200).json(membershipStatus);
+  } catch (error) {
+    console.error(`Error fetching membership status for user with ID ${userId}:`, error);
+    res.status(500).json({ message: 'Server error while fetching membership status.', error: error.message });
   }
 };

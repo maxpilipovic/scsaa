@@ -109,7 +109,7 @@ function AdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <StatusCard title="Total Members" value={dashboardData.totalMembers} color="green" />
         <StatusCard title="Total Revenue" value={`${dashboardData.totalRevenue.toFixed(2)}`} color="green" />
-        <StatusCard title="Monthly Recurring Revenue" value={`${dashboardData.mrr.toFixed(2)}`} color="green" />
+        <StatusCard title="Yearly Recurring Revenue" value={`${dashboardData.mrr.toFixed(2)}`} color="green" />
       </div>
 
       <div className="space-y-8">
