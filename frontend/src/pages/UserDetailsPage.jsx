@@ -5,16 +5,22 @@ import { supabase } from '../lib/supabaseClient';
 import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
 import SectionCard from '../components/SectionCard';
+import { toast } from 'react-toastify';
 
 function UserDetailsPage() {
   const { userId } = useParams();
-  const { user: adminUser } = useAuth(); // The logged-in admin
-  const [user, setUser] = useState(null); // The user being viewed
+  const { user: adminUser } = useAuth(); //The logged-in admin
+  const [user, setUser] = useState(null); //The user being viewed
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [userPaymentInfo, setUserPaymentInfo] = useState(null);
   const [userMembershipStatus, setUserMembershipStatus] = useState(null);
+
+  //State for editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState({});
 
   const navigate = useNavigate();
   
@@ -27,6 +33,7 @@ function UserDetailsPage() {
       }
 
       try {
+        setLoading(true);
         const session = (await supabase.auth.getSession()).data.session;
         if (!session) {
           setError('No active session.');
@@ -46,6 +53,7 @@ function UserDetailsPage() {
         
         const userData = await response.json();
         setUser(userData);
+        setFormData(userData); // Initialize form data
 
         //Fetch user payments (DONT THROW ERROR IF NONE)
         const paymentsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/users/${userId}/payments`, { headers });
@@ -78,21 +86,67 @@ function UserDetailsPage() {
     fetchUserData();
   }, [userId, adminUser]);
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const session = (await supabase.auth.getSession()).data.session;
+      if (!session) {
+        toast.error('Authentication session expired. Please log in again.');
+        setIsSaving(false);
+        return;
+      }
+      const token = session.access_token;
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user.');
+      }
+
+      const result = await response.json();
+      setUser(result.user); //Update user state with the returned updated user
+      setIsEditing(false);
+      toast.success('User updated successfully!');
+
+    } catch (err) {
+      console.error('Error saving user details:', err);
+      toast.error(err.message || 'An error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData(user); // Revert changes
+    setIsEditing(false);
+  };
+
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage message={error} />;
   if (!user) return <ErrorPage message="User not found." />;
 
-  const userDetails = [
-    { label: 'First Name', value: user.first_name },
-    { label: 'Last Name', value: user.last_name },
-    { label: 'Email', value: user.email },
-    { label: 'Phone', value: user.phone_number || 'N/A' },
-    { label: 'Date of Birth', value: user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString() : 'N/A' },
-    { label: 'Pledge Class', value: user.pledge_class || 'N/A' },
-    { label: 'Joined', value: new Date(user.created_at).toLocaleString() },
+  // Define the fields that will be editable
+  const editableDetails = [
+    { label: 'First Name', name: 'first_name', type: 'text' },
+    { label: 'Last Name', name: 'last_name', type: 'text' },
+    { label: 'Email', name: 'email', type: 'text' },
+    { label: 'Phone', name: 'phone_number', type: 'text' },
+    { label: 'Date of Birth', name: 'date_of_birth', type: 'date' },
+    { label: 'Address', name: 'address', type: 'text' },
   ];
-
-  console.log('User Payment Info:', userPaymentInfo);
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -104,24 +158,49 @@ function UserDetailsPage() {
           &larr; Back to Admin Dashboard
         </button>
       </div>
-      <h1 className="text-3xl font-bold mb-2">{user.first_name} {user.last_name}</h1>
+      <h1 className="text-3xl font-bold mb-2">{formData.first_name} {formData.last_name}</h1>
       <p className="text-gray-600 mb-8">User ID: {user.id}</p>
 
       <div className="space-y-8">
         <SectionCard title="User Information">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {userDetails.map(detail => (
-              <div key={detail.label}>
+            {editableDetails.map(detail => (
+              <div key={detail.name}>
                 <h3 className="font-medium text-gray-700">{detail.label}</h3>
-                <p className="text-gray-600">{detail.value}</p>
+                {isEditing ? (
+                  <input
+                    type={detail.type}
+                    name={detail.name}
+                    value={formData[detail.name] || ''}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                  />
+                ) : (
+                  <p className="text-gray-600">{user[detail.name] || 'N/A'}</p>
+                )}
               </div>
             ))}
+             {/* Non-editable details */}
+             <div>
+                <h3 className="font-medium text-gray-700">Joined</h3>
+                <p className="text-gray-600">{new Date(user.created_at).toLocaleString()}</p>
+              </div>
           </div>
-          {/* Edit form will go here in a future step */}
+          <div className="mt-6 flex justify-end gap-4">
+            {isEditing ? (
+              <>
+                <button onClick={handleCancel} disabled={isSaving} className="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Cancel</button>
+                <button onClick={handleSave} disabled={isSaving} className="px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Edit</button>
+            )}
+          </div>
         </SectionCard>
 
         <SectionCard title="Membership & Payments">
-          {/* Membership status and payment history will be added here */}
           <div className="mb-6">
             <h3 className="font-bold text-gray-700 mb-2">Membership Status</h3>
             {userMembershipStatus ? (
@@ -130,7 +209,6 @@ function UserDetailsPage() {
                 <p className="text-gray-600">Paid: {new Date(userMembershipStatus.paid_at).toLocaleDateString()}</p>
                 <p className="text-gray-600">Expires: {new Date(userMembershipStatus.expires_at).toLocaleDateString()}</p>
                 <p className="text-gray-600">Stripe Customer ID: {userMembershipStatus.stripe_customer_id}</p>
-
               </div>
             ) : (
               <p className="text-gray-600">No membership status found.</p>
@@ -156,7 +234,7 @@ function UserDetailsPage() {
                         <tr key={payment.payment_id} className="odd:bg-white even:bg-gray-50">
                           <td className="border border-gray-300 px-4 py-2">{payment.payment_id}</td>
                           <td className="border border-gray-300 px-4 py-2">${payment.dues_amount}</td>
-                          <td className="border border-gray-300 px-4 py-2">{payment.stripe_payment_id}</td>
+                          <td className="border border-gray-300 px-4 py_2">{payment.stripe_payment_id}</td>
                           <td className="border border-gray-300 px-4 py-2 capitalize">
                             {payment.status}
                           </td>

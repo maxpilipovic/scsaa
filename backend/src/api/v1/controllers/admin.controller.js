@@ -95,3 +95,38 @@ export const getUserMembershipStatusById = async (req, res) => {
     res.status(500).json({ message: 'Server error while fetching membership status.', error: error.message });
   }
 };
+
+// @desc    Update a user's details
+// @route   PUT /api/v1/admin/users/:userId
+// @access  Private/Admin
+export const updateUser = async (req, res) => {
+  const { userId } = req.params;
+  const updatedData = req.body;
+
+  // Basic validation
+  if (!updatedData) {
+    return res.status(400).json({ message: 'No update data provided.' });
+  }
+
+  // Prevent updating the ID or other protected fields
+  delete updatedData.id;
+  delete updatedData.created_at;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updatedData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    res.status(200).json({ message: 'User updated successfully.', user: data });
+  } catch (error) {
+    console.error(`Error updating user with ID ${userId}:`, error);
+    res.status(500).json({ message: 'Server error while updating user.', error: error.message });
+  }
+};
