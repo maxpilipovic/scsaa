@@ -4,9 +4,12 @@ import { Home, CreditCard, FileText, Calendar, Settings, LogOut, Shield } from '
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import { useLocation } from 'react-router-dom';
+
 const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     try {
@@ -44,6 +47,23 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
     </button>
   );
 
+  const AdminNavButton = () => (
+    <button
+      onClick={() => {
+        navigate('/dashboard/admin');
+        if (closeSidebar) {
+          closeSidebar();
+        }
+      }}
+      className={`flex items-center w-full px-4 py-3 mb-2 rounded-lg transition ${
+        location.pathname.startsWith('/dashboard/admin') ? 'bg-indigo-800' : 'hover:bg-indigo-800'
+      }`}
+    >
+      <Shield size={20} className="mr-3" />
+      Admin
+    </button>
+  );
+
   return (
     <div className="w-64 bg-indigo-900 text-white flex flex-col">
       <div className="p-6">
@@ -60,7 +80,7 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
 
       <div className="p-4 border-t border-indigo-800">
         <NavButton icon={Settings} label="Settings" tabName="settings" />
-        {isAdmin && <NavButton icon={Shield} label="Admin" tabName="Admin" />}
+        {isAdmin && <AdminNavButton />}
         <button
           onClick={handleSignOut}
           className="flex items-center w-full px-4 py-3 rounded-lg hover:bg-indigo-800 transition"

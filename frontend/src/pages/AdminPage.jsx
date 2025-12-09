@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAdmin } from '../context/AdminContext';
 import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
 import SectionCard from '../components/SectionCard';
@@ -10,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 function AdminPage() {
   const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState({
@@ -25,6 +27,10 @@ function AdminPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      navigate('/dashboard');
+    }
+
     const fetchAdminDashboardData = async () => {
       if (!user) {
         setLoading(false);
@@ -90,8 +96,10 @@ function AdminPage() {
       }
     };
 
-    fetchAdminDashboardData();
-  }, [user]);
+    if (isAdmin) {
+      fetchAdminDashboardData();
+    }
+  }, [user, isAdmin, adminLoading, navigate]);
 
   const filteredUsers = users.filter(u => {
     const fullName = `${u.first_name || ''} ${u.last_name || ''}`.toLowerCase();
@@ -104,6 +112,7 @@ function AdminPage() {
 
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage message={error} />;
+  if (!isAdmin) return <ErrorPage message="Admin Access" />;
 
   return (
     <div className="p-8">

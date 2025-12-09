@@ -14,7 +14,6 @@ import ResourcesPage from '../components/ResosurcesPage.jsx';
 import SuccessMessage from '../components/SuccessMessage.jsx';
 import PaymentsPage from './PaymentsPage.jsx';
 import SettingsPage from './SettingsPage.jsx';
-import AdminPage from './AdminPage.jsx';
 import { Menu, X } from 'lucide-react'; //Import Menu and X icons
 
 function DashboardPage() {
@@ -186,7 +185,6 @@ function DashboardPage() {
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
-          {activeTab === "Admin" && isAdmin && <AdminPage />}
           {activeTab === "settings" && <SettingsPage user={user} />}
         </div>
       </div>

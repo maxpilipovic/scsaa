@@ -5,8 +5,12 @@ import SectionCard from '../components/SectionCard';
 import AnnouncementFormModal from '../components/AnnouncementFormModal';
 import { Plus, Edit, Trash2, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useAdmin } from '../context/AdminContext';
 import { supabase } from '../lib/supabaseClient';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import LoadingPage from './LoadingPage';
+import ErrorPage from './ErrorPage';
 
 const AdminAnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -16,6 +20,17 @@ const AdminAnnouncementsPage = () => {
   const [currentAnnouncement, setCurrentAnnouncement] = useState(null);
 
   const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!adminLoading && !isAdmin) {
+      navigate('/dashboard');
+    }
+    if (user && isAdmin) {
+      fetchAnnouncements();
+    }
+  }, [user, isAdmin, adminLoading, navigate]);
 
   const fetchAnnouncements = async () => {
     try {
@@ -39,12 +54,6 @@ const AdminAnnouncementsPage = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (user) {
-      fetchAnnouncements();
-    }
-  }, [user]);
 
   const handleOpenModal = (announcement = null) => {
     setCurrentAnnouncement(announcement);
@@ -115,6 +124,10 @@ const AdminAnnouncementsPage = () => {
       }
     }
   };
+
+  if (loading || adminLoading) return <LoadingPage />;
+  if (error) return <ErrorPage message={error} />;
+  if (!isAdmin) return <ErrorPage message="Admin Access" />;
 
   return (
     <>

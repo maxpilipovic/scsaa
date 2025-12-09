@@ -224,3 +224,34 @@ export const deleteAnnouncement = async (req, res) => {
     res.status(500).json({ message: 'Server error while deleting announcement.', error: error.message });
   }
 };
+
+//Check Admin Role
+export const checkAdminRole = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      //If .single() finds no rows, it returns an error, which we can use to send a 404
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+      throw error;
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const isAdmin = user.role === 'admin';
+    res.status(200).json({ isAdmin });
+  } catch (error) {
+    console.error(`Error checking admin role for user with ID ${userId}:`, error);
+    res.status(500).json({ message: 'Server error while checking admin role.', error: error.message });
+  }
+};

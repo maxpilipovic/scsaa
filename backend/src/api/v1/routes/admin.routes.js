@@ -15,7 +15,9 @@ import {
   getAllAnnouncements,
   createAnnouncement,
   updateAnnouncement,
-  deleteAnnouncement
+  deleteAnnouncement,
+  //Check admin role
+  checkAdminRole
 } from '../controllers/admin.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -42,5 +44,8 @@ router.get('/announcements', getAllAnnouncements);
 router.post('/announcements', createAnnouncement);
 router.put('/announcements/:announcementId', updateAnnouncement);
 router.delete('/announcements/:announcementId', deleteAnnouncement);
+
+//Check Admin Role
+router.get('/check-admin/:userId', checkAdminRole);
 
 export default router;

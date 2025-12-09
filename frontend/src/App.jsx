@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import UserDetailsPage from "./pages/UserDetailsPage";
+import AdminPage from "./pages/AdminPage";
 import AdminEventsPage from "./pages/AdminEventsPage";
 import AdminAnnouncementsPage from "./pages/AdminAnnouncementsPage";
 
@@ -13,6 +14,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from "./context/AuthContext";
+import { AdminProvider } from "./context/AdminContext";
 
 function App() {
 
@@ -26,8 +28,9 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/user/:userId" element={<UserDetailsPage />} />
-          <Route path="/dashboard/admin/events" element={<AdminEventsPage />} />
-          <Route path="/dashboard/admin/announcements" element={<AdminAnnouncementsPage />} />
+          <Route path="/dashboard/admin" element={<AdminProvider><AdminPage /></AdminProvider>} />
+          <Route path="/dashboard/admin/events" element={<AdminProvider><AdminEventsPage /></AdminProvider>} />
+          <Route path="/dashboard/admin/announcements" element={<AdminProvider><AdminAnnouncementsPage /></AdminProvider>} />
         </Routes>
       </AuthProvider>
     </>
