@@ -131,6 +131,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
+//EVENTS MANAGEMENT
 export const getAllEvents = async (req, res) => {
   try {
     const { data, error } = await supabase.from('events').select('*').order('start_time', { ascending: true });
@@ -174,5 +175,52 @@ export const deleteEvent = async (req, res) => {
     res.status(200).json({ message: 'Event deleted successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error while deleting event.', error: error.message });
+  }
+};
+
+//ANNOUNCEMENTS MANAEGEMENT
+export const getAllAnnouncements = async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('announcements').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while fetching announcements.', error: error.message });
+  }
+};
+
+export const createAnnouncement = async (req, res) => {
+  const { user_id, title, preview } = req.body;
+  try {
+    const { data, error } = await supabase.from('announcements').insert([{ user_id, title, preview }]).select().single();
+    if (error) throw error;
+    res.status(201).json({ message: 'Announcement created successfully.', announcement: data });
+  } catch (error) {
+    console.error('Error creating announcement:', error);
+    res.status(500).json({ message: 'Server error while creating announcement.', error: error.message });
+  }
+};
+
+export const updateAnnouncement = async (req, res) => {
+  const { announcementId } = req.params;
+  const { title, preview } = req.body;
+  try {
+    const { data, error } = await supabase.from('announcements').update({ title, preview }).eq('announcement_id', announcementId).select().single();
+    if (error) throw error;
+    res.status(200).json({ message: 'Announcement updated successfully.', announcement: data });
+  } catch (error) {
+    console.error(`Error updating announcement with ID ${announcementId}:`, error);
+    res.status(500).json({ message: 'Server error while updating announcement.', error: error.message });
+  }
+};
+
+export const deleteAnnouncement = async (req, res) => {
+  const { announcementId } = req.params;
+  try {
+    const { error } = await supabase.from('announcements').delete().eq('announcement_id', announcementId);
+    if (error) throw error;
+    res.status(200).json({ message: 'Announcement deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while deleting announcement.', error: error.message });
   }
 };

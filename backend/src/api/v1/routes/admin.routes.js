@@ -10,7 +10,12 @@ import {
   getAllEvents,
   createEvent,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  //Anouncement routes
+  getAllAnnouncements,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement
 } from '../controllers/admin.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -31,5 +36,11 @@ router.get('/events', getAllEvents);
 router.post('/events', createEvent);
 router.put('/events/:eventId', updateEvent);
 router.delete('/events/:eventId', deleteEvent);
+
+//Announcement Management Routes
+router.get('/announcements', getAllAnnouncements);
+router.post('/announcements', createAnnouncement);
+router.put('/announcements/:announcementId', updateAnnouncement);
+router.delete('/announcements/:announcementId', deleteAnnouncement);
 
 export default router;
