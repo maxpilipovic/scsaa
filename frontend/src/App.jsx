@@ -26,8 +26,8 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/user/:userId" element={<UserDetailsPage />} />
-          <Route path="/dashboard/events" element={<AdminEventsPage />} />
-          <Route path="/dashboard/announcements" element={<AdminAnnouncementsPage />} />
+          <Route path="/dashboard/admin/events" element={<AdminEventsPage />} />
+          <Route path="/dashboard/admin/announcements" element={<AdminAnnouncementsPage />} />
         </Routes>
       </AuthProvider>
     </>

@@ -119,8 +119,8 @@ function AdminPage() {
 
         <SectionCard title="Announcements & Events">
           <p className="text-gray-500">Create, edit and delete announcements and events directly from the admin dashboard.</p>
-          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/announcements')}>Manage Announcements</button>
-          <button className="mt-4 ml-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/events')}>Manage Events</button>
+          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/admin/announcements')}>Manage Announcements</button>
+          <button className="mt-4 ml-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/admin/events')}>Manage Events</button>
         </SectionCard>
 
         <SectionCard title="User Management">

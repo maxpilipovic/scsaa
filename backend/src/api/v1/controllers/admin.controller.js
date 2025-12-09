@@ -205,7 +205,7 @@ export const updateAnnouncement = async (req, res) => {
   const { announcementId } = req.params;
   const { title, preview } = req.body;
   try {
-    const { data, error } = await supabase.from('announcements').update({ title, preview }).eq('announcement_id', announcementId).select().single();
+    const { data, error } = await supabase.from('announcements').update({ title, preview }).eq('announcements_id', announcementId).select().single();
     if (error) throw error;
     res.status(200).json({ message: 'Announcement updated successfully.', announcement: data });
   } catch (error) {
@@ -217,7 +217,7 @@ export const updateAnnouncement = async (req, res) => {
 export const deleteAnnouncement = async (req, res) => {
   const { announcementId } = req.params;
   try {
-    const { error } = await supabase.from('announcements').delete().eq('announcement_id', announcementId);
+    const { error } = await supabase.from('announcements').delete().eq('announcements_id', announcementId);
     if (error) throw error;
     res.status(200).json({ message: 'Announcement deleted successfully.' });
   } catch (error) {
