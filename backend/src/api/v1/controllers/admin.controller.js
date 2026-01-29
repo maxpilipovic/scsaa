@@ -1,5 +1,6 @@
 import { supabase } from '../../../config/supabaseClient.js';
-import { logUserUpdate, logEventAction, logAnnouncementAction } from '../../../utils/auditLogger.js';
+import { logUserUpdate, logEventAction, logAnnouncementAction, logAction } from '../../../utils/auditLogger.js';
+import { sendBulkEmail, announcementEmailTemplate, eventEmailTemplate, customEmailTemplate } from '../../../utils/emailService.js';
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -153,6 +154,7 @@ export const getAllEvents = async (req, res) => {
 export const createEvent = async (req, res) => {
   const { name, description, location, start_time, end_date, user_id } = req.body;
   const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const sendEmailNotification = req.body.sendEmailNotification !== false; // Default to true
   
   try {
     const { data, error } = await supabase.from('events').insert([{ name, description, location, start_time, end_date, user_id }]).select().single();
@@ -161,6 +163,33 @@ export const createEvent = async (req, res) => {
     // Log the event creation
     if (adminUserId) {
       await logEventAction(adminUserId, 'CREATE', data.event_id, { name, description, location, start_time, end_date });
+    }
+
+    // Send email to all users if requested
+    if (sendEmailNotification) {
+      try {
+        const { data: users, error: usersError } = await supabase
+          .from('users')
+          .select('email');
+        
+        if (!usersError && users && users.length > 0) {
+          const emails = users.map(user => user.email);
+          const emailHtml = eventEmailTemplate(name, description, location, start_time);
+          
+          await sendBulkEmail(emails, `📅 New Event: ${name}`, emailHtml);
+          
+          // Log the email sending
+          if (adminUserId) {
+            await logAction(adminUserId, 'EVENT_EMAIL_SENT', 'events', {
+              event_id: data.event_id,
+              recipients_count: emails.length,
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending event notification emails:', emailError);
+        // Don't fail the request if email sending fails
+      }
     }
     
     res.status(201).json({ message: 'Event created successfully.', event: data });
@@ -224,6 +253,7 @@ export const getAllAnnouncements = async (req, res) => {
 export const createAnnouncement = async (req, res) => {
   const { user_id, title, preview } = req.body;
   const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const sendEmailNotification = req.body.sendEmailNotification !== false; // Default to true
   
   try {
     const { data, error } = await supabase.from('announcements').insert([{ user_id, title, preview }]).select().single();
@@ -232,6 +262,33 @@ export const createAnnouncement = async (req, res) => {
     // Log the announcement creation
     if (adminUserId) {
       await logAnnouncementAction(adminUserId, 'CREATE', data.announcements_id, { title, preview });
+    }
+
+    // Send email to all users if requested
+    if (sendEmailNotification) {
+      try {
+        const { data: users, error: usersError } = await supabase
+          .from('users')
+          .select('email');
+        
+        if (!usersError && users && users.length > 0) {
+          const emails = users.map(user => user.email);
+          const emailHtml = announcementEmailTemplate(title, preview);
+          
+          await sendBulkEmail(emails, `📢 New Announcement: ${title}`, emailHtml);
+          
+          // Log the email sending
+          if (adminUserId) {
+            await logAction(adminUserId, 'ANNOUNCEMENT_EMAIL_SENT', 'announcements', {
+              announcement_id: data.announcements_id,
+              recipients_count: emails.length,
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error('Error sending announcement notification emails:', emailError);
+        // Don't fail the request if email sending fails
+      }
     }
     
     res.status(201).json({ message: 'Announcement created successfully.', announcement: data });
@@ -309,5 +366,139 @@ export const checkAdminRole = async (req, res) => {
   } catch (error) {
     console.error(`Error checking admin role for user with ID ${userId}:`, error);
     res.status(500).json({ message: 'Server error while checking admin role.', error: error.message });
+  }
+};
+
+// EMAIL MANAGEMENT
+
+/**
+ * Search for users by email or name
+ * @route   GET /api/v1/admin/search-users
+ * @query   q - Search query (email or name)
+ */
+export const searchUsers = async (req, res) => {
+  const { q } = req.query;
+
+  if (!q || q.length < 2) {
+    return res.status(400).json({ message: 'Search query must be at least 2 characters.' });
+  }
+
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, email, first_name, last_name')
+      .or(`email.ilike.%${q}%,first_name.ilike.%${q}%,last_name.ilike.%${q}%`)
+      .limit(20);
+
+    if (error) throw error;
+
+    res.status(200).json(users || []);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ message: 'Server error while searching users.', error: error.message });
+  }
+};
+
+/**
+ * Send a custom email to a user
+ * @route   POST /api/v1/admin/send-email-to-user
+ * @body    {userId, subject, body, adminUserId}
+ */
+export const sendEmailToUser = async (req, res) => {
+  const { userId, subject, body, adminUserId } = req.body;
+
+  if (!userId || !subject || !body) {
+    return res.status(400).json({ message: 'User ID, subject, and body are required.' });
+  }
+
+  try {
+    // Get the user's email
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('email, first_name, last_name')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Send the email
+    const { sendEmail } = await import('../../../utils/emailService.js');
+    const emailHtml = customEmailTemplate(subject, body);
+    const success = await sendEmail(user.email, subject, emailHtml);
+
+    if (!success) {
+      return res.status(500).json({ message: 'Failed to send email.' });
+    }
+
+    // Log the action
+    if (adminUserId) {
+      await logAction(adminUserId, 'CUSTOM_EMAIL_SENT', 'emails', {
+        recipient_user_id: userId,
+        recipient_email: user.email,
+        subject,
+      });
+    }
+
+    res.status(200).json({ 
+      message: `Email sent successfully to ${user.email}`,
+      recipient: {
+        id: user.id,
+        email: user.email,
+        name: `${user.first_name} ${user.last_name}`,
+      }
+    });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ message: 'Server error while sending email.', error: error.message });
+  }
+};
+
+/**
+ * Send a bulk custom email to multiple users
+ * @route   POST /api/v1/admin/send-bulk-email
+ * @body    {userIds, subject, body, adminUserId}
+ */
+export const sendBulkCustomEmail = async (req, res) => {
+  const { userIds, subject, body, adminUserId } = req.body;
+
+  if (!userIds || !Array.isArray(userIds) || userIds.length === 0 || !subject || !body) {
+    return res.status(400).json({ message: 'User IDs (array), subject, and body are required.' });
+  }
+
+  try {
+    // Get the users' emails
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, email')
+      .in('id', userIds);
+
+    if (usersError || !users || users.length === 0) {
+      return res.status(404).json({ message: 'Users not found.' });
+    }
+
+    const emails = users.map(u => u.email);
+    const emailHtml = customEmailTemplate(subject, body);
+
+    // Send bulk email
+    const results = await sendBulkEmail(emails, subject, emailHtml);
+
+    // Log the action
+    if (adminUserId) {
+      await logAction(adminUserId, 'BULK_CUSTOM_EMAIL_SENT', 'emails', {
+        recipient_count: results.success,
+        failed_count: results.failed,
+        subject,
+      });
+    }
+
+    res.status(200).json({ 
+      message: `Bulk email sent. ${results.success} succeeded, ${results.failed} failed.`,
+      results,
+    });
+  } catch (error) {
+    console.error('Error sending bulk email:', error);
+    res.status(500).json({ message: 'Server error while sending bulk email.', error: error.message });
   }
 };

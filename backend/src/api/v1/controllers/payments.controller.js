@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import { supabase } from '../../../config/supabaseClient.js';
 import { logPaymentAction } from '../../../utils/auditLogger.js';
+import { sendEmail, paymentConfirmationTemplate } from '../../../utils/emailService.js';
 
 dotenv.config();
 

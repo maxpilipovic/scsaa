@@ -17,7 +17,11 @@ import {
   updateAnnouncement,
   deleteAnnouncement,
   //Check admin role
-  checkAdminRole
+  checkAdminRole,
+  //Email routes
+  searchUsers,
+  sendEmailToUser,
+  sendBulkCustomEmail,
 } from '../controllers/admin.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -47,5 +51,10 @@ router.delete('/announcements/:announcementId', deleteAnnouncement);
 
 //Check Admin Role
 router.get('/check-admin/:userId', checkAdminRole);
+
+//Email Management Routes
+router.get('/search-users', searchUsers);
+router.post('/send-email-to-user', sendEmailToUser);
+router.post('/send-bulk-email', sendBulkCustomEmail);
 
 export default router;

@@ -5,6 +5,7 @@ import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import { supabase } from '../../../config/supabaseClient.js';
 import { logSubscriptionAction, logPaymentAction } from '../../../utils/auditLogger.js';
+import { sendEmail, paymentConfirmationTemplate, renewalConfirmationTemplate } from '../../../utils/emailService.js';
 
 dotenv.config();
 
@@ -61,6 +62,13 @@ export const handleStripeWebhook = async (req, res) => {
           { onConflict: 'user_id' }
         );
 
+        // Get user email for confirmation
+        const { data: user } = await supabase
+          .from('users')
+          .select('email, first_name, last_name')
+          .eq('id', userId)
+          .single();
+
         // Log the subscription creation
         await logSubscriptionAction(userId, 'SUBSCRIBED', {
           customer_id: customerId,
@@ -68,7 +76,22 @@ export const handleStripeWebhook = async (req, res) => {
           expires_at: expiresAt,
         });
 
-        console.log(`✔ Membership provisioned for ${userId}`);
+        // Send confirmation email
+        if (user && user.email) {
+          const emailHtml = paymentConfirmationTemplate(
+            `${user.first_name} ${user.last_name}`,
+            50, // Default amount - adjust based on your pricing
+            subscriptionId
+          );
+          
+          await sendEmail(
+            user.email,
+            'Welcome to SCSAA - Membership Active',
+            emailHtml
+          );
+        }
+
+        console.log(`Membership provisioned for ${userId}`);
       } catch (error) {
         console.error('Error provisioning subscription:', error);
         // Log the error
@@ -105,6 +128,12 @@ export const handleStripeWebhook = async (req, res) => {
 
         if (!membership) break;
 
+        const { data: user } = await supabase
+          .from('users')
+          .select('email, first_name, last_name')
+          .eq('id', membership.user_id)
+          .single();
+
         await supabase.from('payments').insert({
           user_id: membership.user_id,
           dues_amount: invoice.amount_paid / 100,
@@ -121,7 +150,22 @@ export const handleStripeWebhook = async (req, res) => {
           period: 'renewal',
         });
 
-        console.log(`✔ Payment recorded (${paymentId})`);
+        // Send confirmation email
+        if (user && user.email) {
+          const emailHtml = renewalConfirmationTemplate(
+            `${user.first_name} ${user.last_name}`,
+            new Date().toISOString(),
+            invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toISOString() : null
+          );
+          
+          await sendEmail(
+            user.email,
+            'Membership Renewed - Payment Received',
+            emailHtml
+          );
+        }
+
+        console.log(`Payment recorded (${paymentId})`);
       } catch (error) {
         console.error('Error recording payment:', error);
         // Log the error
@@ -143,7 +187,7 @@ export const handleStripeWebhook = async (req, res) => {
 
       if (!customerId) break;
 
-      console.log(`❌ Payment failed for: ${customerId}`);
+      console.log(`Payment failed for: ${customerId}`);
 
       try {
         const { data: membership } = await supabase
@@ -216,7 +260,7 @@ export const handleStripeWebhook = async (req, res) => {
           membershipStatus = stripeStatus; // fallback (e.g. past_due)
         }
 
-        console.log('🔄 SUBSCRIPTION UPDATED:', {
+        console.log('SUBSCRIPTION UPDATED:', {
           stripeStatus,
           cancel_at: sub.cancel_at,
           cancel_at_period_end: sub.cancel_at_period_end,
@@ -251,7 +295,7 @@ export const handleStripeWebhook = async (req, res) => {
           })
           .eq('stripe_customer_id', customerId);
 
-        console.log(`✔ Updated membership for ${customerId}`);
+        console.log(`Updated membership for ${customerId}`);
       } catch (err) {
         console.error('Error updating subscription:', err);
       }
@@ -267,7 +311,7 @@ export const handleStripeWebhook = async (req, res) => {
       const customerId = sub.customer;
       if (!customerId) break;
 
-      console.log(`❌ Subscription deleted for: ${customerId}`);
+      console.log(`Subscription deleted for: ${customerId}`);
 
       try {
         const { data: membership } = await supabase
