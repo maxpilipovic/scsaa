@@ -4,6 +4,7 @@
 import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import { supabase } from '../../../config/supabaseClient.js';
+import { logSubscriptionAction, logPaymentAction } from '../../../utils/auditLogger.js';
 
 dotenv.config();
 
@@ -60,9 +61,22 @@ export const handleStripeWebhook = async (req, res) => {
           { onConflict: 'user_id' }
         );
 
+        // Log the subscription creation
+        await logSubscriptionAction(userId, 'SUBSCRIBED', {
+          customer_id: customerId,
+          subscription_id: subscriptionId,
+          expires_at: expiresAt,
+        });
+
         console.log(`✔ Membership provisioned for ${userId}`);
       } catch (error) {
         console.error('Error provisioning subscription:', error);
+        // Log the error
+        if (userId) {
+          await logSubscriptionAction(userId, 'SUBSCRIPTION_PROVISIONING_FAILED', {
+            error: error.message,
+          });
+        }
       }
 
       break;
@@ -99,9 +113,22 @@ export const handleStripeWebhook = async (req, res) => {
           status: 'succeeded',
         });
 
+        // Log the payment success
+        await logPaymentAction(membership.user_id, 'PAYMENT_SUCCEEDED', {
+          customer_id: customerId,
+          payment_id: paymentId,
+          amount: invoice.amount_paid / 100,
+          period: 'renewal',
+        });
+
         console.log(`✔ Payment recorded (${paymentId})`);
       } catch (error) {
         console.error('Error recording payment:', error);
+        // Log the error
+        if (customerId) {
+          // We don't have userId here, but we can log with a note
+          console.error('Failed to record payment webhook for customer:', customerId);
+        }
       }
 
       break;
@@ -117,6 +144,25 @@ export const handleStripeWebhook = async (req, res) => {
       if (!customerId) break;
 
       console.log(`❌ Payment failed for: ${customerId}`);
+
+      try {
+        const { data: membership } = await supabase
+          .from('memberships')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (membership) {
+          // Log the payment failure
+          await logPaymentAction(membership.user_id, 'PAYMENT_FAILED', {
+            customer_id: customerId,
+            amount: invoice.amount_due / 100,
+            period: 'renewal',
+          });
+        }
+      } catch (error) {
+        console.error('Error logging payment failure:', error);
+      }
 
       await supabase
         .from('memberships')
@@ -178,6 +224,25 @@ export const handleStripeWebhook = async (req, res) => {
           membershipStatus,
         });
 
+        // Get the user_id for logging
+        const { data: membership } = await supabase
+          .from('memberships')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (membership) {
+          // Log the subscription update
+          await logSubscriptionAction(membership.user_id, `SUBSCRIPTION_${membershipStatus.toUpperCase()}`, {
+            customer_id: customerId,
+            subscription_id: sub.id,
+            status: membershipStatus,
+            expires_at: expiresAt,
+            stripe_status: stripeStatus,
+            cancel_scheduled: isCancelScheduled,
+          });
+        }
+
         await supabase
           .from('memberships')
           .update({
@@ -203,6 +268,25 @@ export const handleStripeWebhook = async (req, res) => {
       if (!customerId) break;
 
       console.log(`❌ Subscription deleted for: ${customerId}`);
+
+      try {
+        const { data: membership } = await supabase
+          .from('memberships')
+          .select('user_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (membership) {
+          // Log the subscription deletion
+          await logSubscriptionAction(membership.user_id, 'SUBSCRIPTION_CANCELED', {
+            customer_id: customerId,
+            subscription_id: sub.id,
+            reason: 'subscription_deleted',
+          });
+        }
+      } catch (error) {
+        console.error('Error logging subscription deletion:', error);
+      }
 
       await supabase
         .from('memberships')

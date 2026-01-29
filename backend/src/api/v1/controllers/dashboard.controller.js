@@ -1,4 +1,5 @@
 import { supabase } from '../../../config/supabaseClient.js';
+import { logAction } from '../../../utils/auditLogger.js';
 
 export const getMembership = async (req, res) => {
   const { userId } = req.params;
@@ -117,6 +118,12 @@ export const getAdminStatus = async (req, res) => {
       .eq('id', userId)
       .single();
     if (error) throw error;
+    
+    // Log admin status check
+    if (data?.is_admin) {
+      await logAction(userId, 'ADMIN_DASHBOARD_ACCESSED', 'dashboard', { timestamp: new Date().toISOString() });
+    }
+    
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -1,4 +1,5 @@
 import { supabase } from '../../../config/supabaseClient.js';
+import { logUserUpdate, logEventAction, logAnnouncementAction } from '../../../utils/auditLogger.js';
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -102,6 +103,7 @@ export const getUserMembershipStatusById = async (req, res) => {
 export const updateUser = async (req, res) => {
   const { userId } = req.params;
   const updatedData = req.body;
+  const adminUserId = req.body.adminUserId; // Passed from frontend or middleware to track who made the change
 
   // Basic validation
   if (!updatedData) {
@@ -111,6 +113,7 @@ export const updateUser = async (req, res) => {
   // Prevent updating the ID or other protected fields
   delete updatedData.id;
   delete updatedData.created_at;
+  delete updatedData.adminUserId; // Remove the admin user ID from the update data
 
   try {
     const { data, error } = await supabase
@@ -122,6 +125,11 @@ export const updateUser = async (req, res) => {
 
     if (error) {
       throw error;
+    }
+
+    // Log the user update action
+    if (adminUserId) {
+      await logUserUpdate(adminUserId, userId, updatedData);
     }
 
     res.status(200).json({ message: 'User updated successfully.', user: data });
@@ -144,9 +152,17 @@ export const getAllEvents = async (req, res) => {
 
 export const createEvent = async (req, res) => {
   const { name, description, location, start_time, end_date, user_id } = req.body;
+  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  
   try {
     const { data, error } = await supabase.from('events').insert([{ name, description, location, start_time, end_date, user_id }]).select().single();
     if (error) throw error;
+    
+    // Log the event creation
+    if (adminUserId) {
+      await logEventAction(adminUserId, 'CREATE', data.event_id, { name, description, location, start_time, end_date });
+    }
+    
     res.status(201).json({ message: 'Event created successfully.', event: data });
   } catch (error) {
     console.error('Error creating event:', error);
@@ -157,9 +173,17 @@ export const createEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
   const { eventId } = req.params;
   const { name, description, start_time, end_date, location } = req.body;
+  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  
   try {
     const { data, error } = await supabase.from('events').update({ name, description, start_time, end_date, location }).eq('event_id', eventId).select().single();
     if (error) throw error;
+    
+    // Log the event update
+    if (adminUserId) {
+      await logEventAction(adminUserId, 'UPDATE', eventId, { name, description, start_time, end_date, location });
+    }
+    
     res.status(200).json({ message: 'Event updated successfully.', event: data });
   } catch (error) {
     console.error(`Error updating event with ID ${eventId}:`, error);
@@ -169,9 +193,17 @@ export const updateEvent = async (req, res) => {
 
 export const deleteEvent = async (req, res) => {
   const { eventId } = req.params;
+  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  
   try {
     const { error } = await supabase.from('events').delete().eq('event_id', eventId);
     if (error) throw error;
+    
+    // Log the event deletion
+    if (adminUserId) {
+      await logEventAction(adminUserId, 'DELETE', eventId, { deleted_at: new Date().toISOString() });
+    }
+    
     res.status(200).json({ message: 'Event deleted successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error while deleting event.', error: error.message });
@@ -191,9 +223,17 @@ export const getAllAnnouncements = async (req, res) => {
 
 export const createAnnouncement = async (req, res) => {
   const { user_id, title, preview } = req.body;
+  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  
   try {
     const { data, error } = await supabase.from('announcements').insert([{ user_id, title, preview }]).select().single();
     if (error) throw error;
+    
+    // Log the announcement creation
+    if (adminUserId) {
+      await logAnnouncementAction(adminUserId, 'CREATE', data.announcements_id, { title, preview });
+    }
+    
     res.status(201).json({ message: 'Announcement created successfully.', announcement: data });
   } catch (error) {
     console.error('Error creating announcement:', error);
@@ -204,9 +244,17 @@ export const createAnnouncement = async (req, res) => {
 export const updateAnnouncement = async (req, res) => {
   const { announcementId } = req.params;
   const { title, preview } = req.body;
+  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  
   try {
     const { data, error } = await supabase.from('announcements').update({ title, preview }).eq('announcements_id', announcementId).select().single();
     if (error) throw error;
+    
+    // Log the announcement update
+    if (adminUserId) {
+      await logAnnouncementAction(adminUserId, 'UPDATE', announcementId, { title, preview });
+    }
+    
     res.status(200).json({ message: 'Announcement updated successfully.', announcement: data });
   } catch (error) {
     console.error(`Error updating announcement with ID ${announcementId}:`, error);
@@ -216,9 +264,17 @@ export const updateAnnouncement = async (req, res) => {
 
 export const deleteAnnouncement = async (req, res) => {
   const { announcementId } = req.params;
+  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  
   try {
     const { error } = await supabase.from('announcements').delete().eq('announcements_id', announcementId);
     if (error) throw error;
+    
+    // Log the announcement deletion
+    if (adminUserId) {
+      await logAnnouncementAction(adminUserId, 'DELETE', announcementId, { deleted_at: new Date().toISOString() });
+    }
+    
     res.status(200).json({ message: 'Announcement deleted successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error while deleting announcement.', error: error.message });
