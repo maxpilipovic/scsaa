@@ -14,15 +14,14 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
   //console.log(paymentHistory);
   //console.log(upcomingEvents);
   //console.log(announcements);
-  if (!membershipData) return null; // Wait for data
-
+  
   //Map DB fields to UI-friendly variable names
-  const duesExpiration = membershipData.expires_at
+  const duesExpiration = membershipData?.expires_at
     ? new Date(membershipData.expires_at).toLocaleDateString()
     : 'N/A';
   //const pledgeClass = membershipData.pledge_class || 'N/A';
-  const memberSince = membershipData.year || 'N/A';
-  const duesStatus = membershipData.status?.toUpperCase(); //To uppercase
+  const memberSince = membershipData?.year || 'N/A';
+  const duesStatus = membershipData?.status?.toUpperCase() || 'N/A'; //To uppercase
 
   //Safely handle upcoming events
   const nextEvent = upcomingEvents?.length ? upcomingEvents[0] : null;
@@ -36,10 +35,11 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
     CANCELED: "red", //Subscription has been cancelled (Exhausted all retries)
     PENDING_CANCELLATION: "red", //Subscription has been cancelled (Exhausted all retries)
     UNPAID: "red", //Subscription has been cancelled (Exhausted all retries)
+    NO_MEMBERSHIP: "blue", //New user with no membership yet
   };
 
-  //Decide what color - fallback black
-  const statusColor = statusColors[duesStatus] || "black";
+  //Decide what color - fallback blue for new users
+  const statusColor = statusColors[duesStatus] || "blue";
 
 
   return (

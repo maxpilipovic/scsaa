@@ -171,8 +171,7 @@ function DashboardPage() {
           )}
 
           {activeTab === "overview" &&
-            personData?.authUser &&
-            membershipData && (
+            personData?.authUser && (
                 <OverviewPage
                 membershipData={membershipData}
                 paymentHistory={paymentHistory}

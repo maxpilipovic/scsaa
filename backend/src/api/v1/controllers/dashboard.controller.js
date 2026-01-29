@@ -8,6 +8,12 @@ export const getMembership = async (req, res) => {
       .select('*')
       .eq('user_id', userId)
       .single();
+    
+    //Return null or empty object if no membership found (new user)
+    //Error code PGRST116 indicates no rows found for single() query
+    if (error && error.code === 'PGRST116') {
+      return res.json(null);
+    }
     if (error) throw error;
     res.json(data);
   } catch (error) {
@@ -89,6 +95,12 @@ export const getMembershipStatus = async (req, res) => {
       .select('status')
       .eq('user_id', userId)
       .single();
+    
+    //Return null if no membership found (new user)
+    //Error code PGRST116 indicates no rows found for single() query
+    if (error && error.code === 'PGRST116') {
+      return res.json(null);
+    }
     if (error) throw error;
     res.json(data);
   } catch (error) {
