@@ -103,18 +103,28 @@ export const getUserMembershipStatusById = async (req, res) => {
 // @access  Private/Admin
 export const updateUser = async (req, res) => {
   const { userId } = req.params;
-  const updatedData = req.body;
-  const adminUserId = req.body.adminUserId; // Passed from frontend or middleware to track who made the change
+  const rawData = req.body;
+  const adminUserId = req.user?.id; // Get admin ID from authenticated user
 
   // Basic validation
-  if (!updatedData) {
+  if (!rawData || Object.keys(rawData).length === 0) {
     return res.status(400).json({ message: 'No update data provided.' });
   }
 
-  // Prevent updating the ID or other protected fields
-  delete updatedData.id;
-  delete updatedData.created_at;
-  delete updatedData.adminUserId; // Remove the admin user ID from the update data
+  // Whitelist of allowed fields that can be updated
+  const allowedFields = ['first_name', 'last_name', 'phone_number', 'address', 'dob', 'pledge_class'];
+  const updatedData = {};
+  
+  for (const field of allowedFields) {
+    if (field in rawData) {
+      updatedData[field] = rawData[field];
+    }
+  }
+  
+  // Verify that at least one allowed field was provided
+  if (Object.keys(updatedData).length === 0) {
+    return res.status(400).json({ message: 'No valid fields to update.' });
+  }
 
   try {
     const { data, error } = await supabase
@@ -136,7 +146,7 @@ export const updateUser = async (req, res) => {
     res.status(200).json({ message: 'User updated successfully.', user: data });
   } catch (error) {
     console.error(`Error updating user with ID ${userId}:`, error);
-    res.status(500).json({ message: 'Server error while updating user.', error: error.message });
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
 
@@ -379,8 +389,9 @@ export const checkAdminRole = async (req, res) => {
 export const searchUsers = async (req, res) => {
   const { q } = req.query;
 
-  if (!q || q.length < 2) {
-    return res.status(400).json({ message: 'Search query must be at least 2 characters.' });
+  // Validate search query: must be 2-100 characters
+  if (!q || q.length < 2 || q.length > 100) {
+    return res.status(400).json({ message: 'Search query must be 2-100 characters.' });
   }
 
   try {
@@ -395,7 +406,7 @@ export const searchUsers = async (req, res) => {
     res.status(200).json(users || []);
   } catch (error) {
     console.error('Error searching users:', error);
-    res.status(500).json({ message: 'Server error while searching users.', error: error.message });
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
 

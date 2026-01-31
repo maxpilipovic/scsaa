@@ -3,6 +3,12 @@ import { logAction } from '../../../utils/auditLogger.js';
 
 export const getMembership = async (req, res) => {
   const { userId } = req.params;
+  
+  // Prevent horizontal privilege escalation: user can only access their own data
+  if (req.user.id !== userId) {
+    return res.status(403).json({ message: 'Forbidden: You can only access your own membership data.' });
+  }
+  
   try {
     const { data, error } = await supabase
       .from('memberships')
@@ -18,12 +24,19 @@ export const getMembership = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching membership:', error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
 
 export const getPayments = async (req, res) => {
   const { userId } = req.params;
+  
+  // Prevent horizontal privilege escalation: user can only access their own data
+  if (req.user.id !== userId) {
+    return res.status(403).json({ message: 'Forbidden: You can only access your own payment data.' });
+  }
+  
   try {
     const { data, error } = await supabase
       .from('payments')
@@ -33,7 +46,8 @@ export const getPayments = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching payments:', error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
 
@@ -90,6 +104,12 @@ export const getActiveMembers = async (req, res) => {
 
 export const getMembershipStatus = async (req, res) => {
   const { userId } = req.query;
+  
+  // Prevent horizontal privilege escalation: user can only access their own data
+  if (req.user.id !== userId) {
+    return res.status(403).json({ message: 'Forbidden: You can only check your own membership status.' });
+  }
+  
   try {
     const { data, error } = await supabase
       .from('memberships')
@@ -105,7 +125,8 @@ export const getMembershipStatus = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching membership status:', error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };
 

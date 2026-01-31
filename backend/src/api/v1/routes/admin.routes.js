@@ -25,6 +25,7 @@ import {
 } from '../controllers/admin.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { verifyAdmin } from '../middleware/adminMiddleware.js';
+import { emailLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
 
@@ -56,9 +57,9 @@ router.delete('/announcements/:announcementId', deleteAnnouncement);
 //Check Admin Role
 router.get('/check-admin/:userId', checkAdminRole);
 
-//Email Management Routes
+//Email Management Routes - Apply stricter rate limiting
 router.get('/search-users', searchUsers);
-router.post('/send-email-to-user', sendEmailToUser);
-router.post('/send-bulk-email', sendBulkCustomEmail);
+router.post('/send-email-to-user', emailLimiter, sendEmailToUser);
+router.post('/send-bulk-email', emailLimiter, sendBulkCustomEmail);
 
 export default router;

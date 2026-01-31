@@ -29,7 +29,7 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/v1/admin/search-users?q=${encodeURIComponent(query)}`,
+        `${import.meta.env.VITE_API_URL}/api/v1/admin/search-users?q=${encodeURIComponent(query)}`,
         {
           headers: {
             'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,

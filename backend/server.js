@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import apiRouter from './src/api/v1/routes/index.js';
+import { apiLimiter } from './src/api/v1/middleware/rateLimitMiddleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,6 +16,9 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
 app.use(morgan('combined'));
+
+// Apply general rate limiting to all routes
+app.use(apiLimiter);
 
 // The webhook route needs a raw body, so we apply it before express.json().
 // We have already configured the raw body parser in the webhooks.routes.js file itself,
