@@ -26,20 +26,34 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
   //Safely handle upcoming events
   const nextEvent = upcomingEvents?.length ? upcomingEvents[0] : null;
 
-  const statusColors = {
-    INCOMPLETE: "green", //Inital payment fails
-    INCOMPLETE_EXPIRED: "orange", //First invoice not paid within 23 hours
-    TRIALING: "blue", //Trial period (does not exist in my system)
-    ACTIVE: "green", //Trial period is over...
-    PAST_DUE: "yellow", //Payment is required in subscription, but failed.
-    CANCELED: "red", //Subscription has been cancelled (Exhausted all retries)
-    PENDING_CANCELLATION: "red", //Subscription has been cancelled (Exhausted all retries)
-    UNPAID: "red", //Subscription has been cancelled (Exhausted all retries)
-    NO_MEMBERSHIP: "blue", //New user with no membership yet
+  // Simplified and user-friendly status colors
+  const statusColorMap = {
+    ACTIVE: "green",
+    INCOMPLETE: "orange",
+    INCOMPLETE_EXPIRED: "orange",
+    TRIALING: "blue",
+    PAST_DUE: "red",
+    CANCELED: "red",
+    PENDING_CANCELLATION: "red",
+    UNPAID: "red",
+    NO_MEMBERSHIP: "gray",
   };
 
-  //Decide what color - fallback blue for new users
-  const statusColor = statusColors[duesStatus] || "blue";
+  // User-friendly status labels
+  const statusLabelMap = {
+    ACTIVE: "Active",
+    INCOMPLETE: "Pending Payment",
+    INCOMPLETE_EXPIRED: "Payment Overdue",
+    TRIALING: "Trial Period",
+    PAST_DUE: "Past Due",
+    CANCELED: "Canceled",
+    PENDING_CANCELLATION: "Pending Cancellation",
+    UNPAID: "Unpaid",
+    NO_MEMBERSHIP: "No Membership",
+  };
+
+  const statusColor = statusColorMap[duesStatus] || "gray";
+  const statusLabel = statusLabelMap[duesStatus] || duesStatus;
 
 
   return (
@@ -48,20 +62,20 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatusCard
           title="Dues Status"
-          value={duesStatus}
+          value={statusLabel}
           subtitle={`Valid until ${duesExpiration}`}
           color={statusColor}
         />
         <StatusCard
           title="Member Since"
           value={memberSince}
-          color={statusColor}
+          color="blue"
         />
         <StatusCard
           title="Upcoming Events"
           value={upcomingEvents?.length || 0}
           subtitle={nextEvent ? `Next: ${new Date(nextEvent.start_time).toLocaleDateString()}` : 'No upcoming events'}
-          color={statusColor}
+          color="purple"
         />
       </div>
 
