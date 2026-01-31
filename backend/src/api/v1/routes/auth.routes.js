@@ -4,8 +4,10 @@ import { authLimiter } from '../middleware/rateLimitMiddleware.js';
 
 const router = express.Router();
 
-// Apply stricter rate limiting to auth endpoints
-router.get('/check-access', authLimiter, checkAccess);
+// check-access is called on every page load, so don't rate limit it
+router.get('/check-access', checkAccess);
+
+// Only rate limit the logging endpoint
 router.post('/log-auth-event', authLimiter, logAuthEvent);
 
 export default router;

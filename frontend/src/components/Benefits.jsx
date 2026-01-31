@@ -25,7 +25,7 @@ function Benefits() {
               <Users className="text-white" size={24} />
             </div>
             <h3 className="text-xl font-semibold text-purple-900 mb-2">Network</h3>
-            <p className="text-purple-700">Connect with brothers across generations and industries for career opportunities</p>
+            <p className="text-purple-700">Connect with brothers across generations and stay up to date with undergraduate chapter news.</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl border-2 border-purple-200 hover:border-amber-400 transition">
