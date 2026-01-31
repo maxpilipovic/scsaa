@@ -89,7 +89,7 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
 
       if (activeTab === 'single' && selectedUsers.length === 1) {
         // Send to single user
-        endpoint = 'http://localhost:3001/api/v1/admin/send-email-to-user';
+        endpoint = `${import.meta.env.VITE_API_URL}/api/v1/admin/send-email-to-user`;
         requestBody = {
           userId: selectedUsers[0].id,
           subject,
@@ -98,7 +98,7 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
         };
       } else {
         // Send bulk email
-        endpoint = 'http://localhost:3001/api/v1/admin/send-bulk-email';
+        endpoint = `${import.meta.env.VITE_API_URL}/api/v1/admin/send-bulk-email`;
         requestBody = {
           userIds: selectedUsers.map(u => u.id),
           subject,
