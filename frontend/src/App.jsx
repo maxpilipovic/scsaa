@@ -15,6 +15,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from "./context/AuthContext";
 import { AdminProvider } from "./context/AdminContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
 
@@ -28,9 +29,27 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/user/:userId" element={<UserDetailsPage />} />
-          <Route path="/dashboard/admin" element={<AdminProvider><AdminPage /></AdminProvider>} />
-          <Route path="/dashboard/admin/events" element={<AdminProvider><AdminEventsPage /></AdminProvider>} />
-          <Route path="/dashboard/admin/announcements" element={<AdminProvider><AdminAnnouncementsPage /></AdminProvider>} />
+          <Route path="/dashboard/admin" element={
+            <AdminProvider>
+              <ProtectedRoute requireAdmin={true}>
+                <AdminPage />
+              </ProtectedRoute>
+            </AdminProvider>
+          } />
+          <Route path="/dashboard/admin/events" element={
+            <AdminProvider>
+              <ProtectedRoute requireAdmin={true}>
+                <AdminEventsPage />
+              </ProtectedRoute>
+            </AdminProvider>
+          } />
+          <Route path="/dashboard/admin/announcements" element={
+            <AdminProvider>
+              <ProtectedRoute requireAdmin={true}>
+                <AdminAnnouncementsPage />
+              </ProtectedRoute>
+            </AdminProvider>
+          } />
         </Routes>
       </AuthProvider>
     </>

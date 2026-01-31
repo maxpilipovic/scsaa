@@ -24,11 +24,15 @@ import {
   sendBulkCustomEmail,
 } from '../controllers/admin.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { verifyAdmin } from '../middleware/adminMiddleware.js';
 
 const router = express.Router();
 
-//All routes in this file are protected
+//All routes in this file require authentication
 router.use(protect);
+
+//All routes after this point also require admin privileges
+router.use(verifyAdmin);
 
 //User Management Routes
 router.get('/users', getAllUsers);
