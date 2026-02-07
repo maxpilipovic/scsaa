@@ -9,6 +9,7 @@ import UserTable from '../components/UserTable'; //Import the new UserTable comp
 import SendEmailModal from '../components/SendEmailModal';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Users, DollarSign, TrendingUp, Bell, Calendar, Mail, Search } from 'lucide-react';
 
 function AdminPage() {
   const { user } = useAuth();
@@ -117,53 +118,136 @@ function AdminPage() {
   if (!isAdmin) return <ErrorPage message="Admin Access" />;
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-8">
+      {/* Back Button and Header */}
+      <div className="mb-8">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors mb-4 group"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="font-medium">Back to Dashboard</span>
+        </button>
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
+            <Users className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800">Admin Dashboard</h1>
+            <p className="text-gray-600 mt-1">Manage your organization and members</p>
+          </div>
+        </div>
+      </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatusCard title="Total Members" value={dashboardData.totalMembers} color="green" />
-        <StatusCard title="Total Revenue" value={`${dashboardData.totalRevenue.toFixed(2)}`} color="green" />
-        <StatusCard title="Yearly Recurring Revenue" value={`${dashboardData.mrr.toFixed(2)}`} color="green" />
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Members</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">{dashboardData.totalMembers}</p>
+            </div>
+            <div className="p-3 bg-gradient-to-br from-green-400 to-green-500 rounded-lg">
+              <Users className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Revenue</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">${dashboardData.totalRevenue.toFixed(2)}</p>
+            </div>
+            <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg">
+              <DollarSign className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wide">Yearly Revenue</p>
+              <p className="text-3xl font-bold text-gray-800 mt-2">${dashboardData.mrr.toFixed(2)}</p>
+            </div>
+            <div className="p-3 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg">
+              <TrendingUp className="w-8 h-8 text-white" />
+            </div>
+          </div>
+        </div>
       </div>
       
-      <div className="space-y-8">
+      <div className="space-y-6">
+        {/* Management Actions Card */}
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="w-5 h-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-800">Content Management</h2>
+          </div>
+          <p className="text-gray-600 mb-6">Create, edit and delete announcements and events directly from the admin dashboard.</p>
+          <div className="flex flex-wrap gap-3">
+            <button 
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5" 
+              onClick={() => navigate('/dashboard/admin/announcements')}
+            >
+              <Bell className="w-4 h-4" />
+              Manage Announcements
+            </button>
+            <button 
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5" 
+              onClick={() => navigate('/dashboard/admin/events')}
+            >
+              <Calendar className="w-4 h-4" />
+              Manage Events
+            </button>
+            <button 
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5" 
+              onClick={() => setEmailModalOpen(true)}
+            >
+              <Mail className="w-4 h-4" />
+              Email System
+            </button>
+          </div>
+        </div>
 
-        <SectionCard title="Announcements & Events">
-          <p className="text-gray-500">Create, edit and delete announcements and events directly from the admin dashboard.</p>
-          <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/admin/announcements')}>Manage Announcements</button>
-          <button className="mt-4 ml-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => navigate('/dashboard/admin/events')}>Manage Events</button>
-          <button className="mt-4 ml-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => setEmailModalOpen(true)}>Email System</button>
-        </SectionCard>
-
-        <SectionCard title="User Management">
-          <div className="mb-4">
+        {/* User Management Card */}
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-800">User Management</h2>
+          </div>
+          <div className="mb-4 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name, email, or pledge class..."
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <UserTable users={filteredUsers} />
-        </SectionCard>
+        </div>
 
-        <SectionCard title="Recent Sign-ups">
+        {/* Recent Sign-ups Card */}
+        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Sign-ups</h2>
           {dashboardData.recentSignups.length > 0 ? (
-            <ul className="divide-y divide-gray-200">
+            <ul className="divide-y divide-gray-100">
               {dashboardData.recentSignups.map((signup) => (
-                <li key={signup.id} className="py-3 flex justify-between items-center">
-                  <span>{signup.first_name} {signup.last_name}</span>
-                  <span className="text-sm text-gray-500">
+                <li key={signup.id} className="py-4 flex justify-between items-center hover:bg-gray-50 px-2 rounded transition-colors">
+                  <span className="font-medium text-gray-700">{signup.first_name} {signup.last_name}</span>
+                  <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                     {new Date(signup.created_at).toLocaleDateString()}
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500">No recent sign-ups.</p>
+            <p className="text-gray-500 text-center py-8">No recent sign-ups.</p>
           )}
-        </SectionCard>
+        </div>
       </div>
 
       <SendEmailModal 
