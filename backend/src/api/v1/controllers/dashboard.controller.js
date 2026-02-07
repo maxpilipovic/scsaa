@@ -60,7 +60,7 @@ export const getEvents = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -73,7 +73,7 @@ export const getAnnouncements = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -85,7 +85,7 @@ export const getTotalMembers = async (req, res) => {
     if (error) throw error;
     res.json({ totalMembers: count });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -98,7 +98,7 @@ export const getActiveMembers = async (req, res) => {
     if (error) throw error;
     res.json({ activeMembers: count });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -147,7 +147,7 @@ export const getAdminStatus = async (req, res) => {
     
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -161,7 +161,7 @@ export const getRecentSignups = async (req, res) => {
     if (error) throw error;
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -177,7 +177,7 @@ export const getTotalRevenue = async (req, res) => {
     const totalRevenue = data.reduce((sum, payment) => sum + payment.dues_amount, 0);
     res.json({ totalRevenue });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
@@ -196,6 +196,6 @@ export const getMonthlyRecurringRevenue = async (req, res) => {
     const mrr = count * yearlyRecurringAmountPerMember;
     res.json({ mrr });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
 };

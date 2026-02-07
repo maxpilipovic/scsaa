@@ -2,6 +2,12 @@ import { supabase } from '../../../config/supabaseClient.js';
 import { logUserUpdate, logEventAction, logAnnouncementAction, logAction } from '../../../utils/auditLogger.js';
 import { sendBulkEmail, announcementEmailTemplate, eventEmailTemplate, customEmailTemplate } from '../../../utils/emailService.js';
 
+// UUID validation helper
+const isValidUUID = (uuid) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+};
+
 export const getAllUsers = async (req, res) => {
   try {
     //Fetch all users from the 'persons' table
@@ -16,12 +22,17 @@ export const getAllUsers = async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching all users:', error);
-    res.status(500).json({ message: 'Server error while fetching users.', error: error.message });
+    res.status(500).json({ message: 'Server error while fetching users.' });
   }
 };
 
 export const getUserById = async (req, res) => {
   const { userId } = req.params;
+
+  // Validate UUID format
+  if (!isValidUUID(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID format.' });
+  }
 
   try {
     const { data: user, error } = await supabase
@@ -45,12 +56,17 @@ export const getUserById = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     console.error(`Error fetching user with ID ${userId}:`, error);
-    res.status(500).json({ message: 'Server error while fetching user.', error: error.message });
+    res.status(500).json({ message: 'Server error while fetching user.' });
   }
 };
 
 export const getUserPaymentsById = async (req, res) => {
   const { userId } = req.params;
+
+  // Validate UUID format
+  if (!isValidUUID(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID format.' });
+  }
 
   try {
     const { data: payments, error } = await supabase
@@ -65,12 +81,17 @@ export const getUserPaymentsById = async (req, res) => {
     res.status(200).json(payments);
   } catch (error) {
     console.error(`Error fetching payments for user with ID ${userId}:`, error);
-    res.status(500).json({ message: 'Server error while fetching payments.', error: error.message });
+    res.status(500).json({ message: 'Server error while fetching payments.' });
   }
 };
 
 export const getUserMembershipStatusById = async (req, res) => {
   const { userId } = req.params;
+
+  // Validate UUID format
+  if (!isValidUUID(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID format.' });
+  }
 
   try {
     const { data: membershipStatus, error } = await supabase
@@ -94,7 +115,7 @@ export const getUserMembershipStatusById = async (req, res) => {
     res.status(200).json(membershipStatus);
   } catch (error) {
     console.error(`Error fetching membership status for user with ID ${userId}:`, error);
-    res.status(500).json({ message: 'Server error while fetching membership status.', error: error.message });
+    res.status(500).json({ message: 'Server error while fetching membership status.' });
   }
 };
 
@@ -105,6 +126,11 @@ export const updateUser = async (req, res) => {
   const { userId } = req.params;
   const rawData = req.body;
   const adminUserId = req.user?.id; // Get admin ID from authenticated user
+
+  // Validate UUID format
+  if (!isValidUUID(userId)) {
+    return res.status(400).json({ message: 'Invalid user ID format.' });
+  }
 
   // Basic validation
   if (!rawData || Object.keys(rawData).length === 0) {
@@ -117,7 +143,12 @@ export const updateUser = async (req, res) => {
   
   for (const field of allowedFields) {
     if (field in rawData) {
-      updatedData[field] = rawData[field];
+      // Sanitize string inputs
+      if (typeof rawData[field] === 'string') {
+        updatedData[field] = rawData[field].trim().slice(0, 255); // Limit length
+      } else {
+        updatedData[field] = rawData[field];
+      }
     }
   }
   
@@ -157,7 +188,7 @@ export const getAllEvents = async (req, res) => {
     if (error) throw error;
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Server error while fetching events.', error: error.message });
+    res.status(500).json({ message: 'Server error while fetching events.', error: "An error occurred" });
   }
 };
 
@@ -205,7 +236,7 @@ export const createEvent = async (req, res) => {
     res.status(201).json({ message: 'Event created successfully.', event: data });
   } catch (error) {
     console.error('Error creating event:', error);
-    res.status(500).json({ message: 'Server error while creating event.', error: error.message });
+    res.status(500).json({ message: 'Server error while creating event.', error: "An error occurred" });
   }
 };
 
@@ -226,7 +257,7 @@ export const updateEvent = async (req, res) => {
     res.status(200).json({ message: 'Event updated successfully.', event: data });
   } catch (error) {
     console.error(`Error updating event with ID ${eventId}:`, error);
-    res.status(500).json({ message: 'Server error while updating event.', error: error.message });
+    res.status(500).json({ message: 'Server error while updating event.', error: "An error occurred" });
   }
 };
 
@@ -245,7 +276,7 @@ export const deleteEvent = async (req, res) => {
     
     res.status(200).json({ message: 'Event deleted successfully.' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error while deleting event.', error: error.message });
+    res.status(500).json({ message: 'Server error while deleting event.', error: "An error occurred" });
   }
 };
 
@@ -256,7 +287,7 @@ export const getAllAnnouncements = async (req, res) => {
     if (error) throw error;
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Server error while fetching announcements.', error: error.message });
+    res.status(500).json({ message: 'Server error while fetching announcements.', error: "An error occurred" });
   }
 };
 
@@ -304,7 +335,7 @@ export const createAnnouncement = async (req, res) => {
     res.status(201).json({ message: 'Announcement created successfully.', announcement: data });
   } catch (error) {
     console.error('Error creating announcement:', error);
-    res.status(500).json({ message: 'Server error while creating announcement.', error: error.message });
+    res.status(500).json({ message: 'Server error while creating announcement.', error: "An error occurred" });
   }
 };
 
@@ -325,7 +356,7 @@ export const updateAnnouncement = async (req, res) => {
     res.status(200).json({ message: 'Announcement updated successfully.', announcement: data });
   } catch (error) {
     console.error(`Error updating announcement with ID ${announcementId}:`, error);
-    res.status(500).json({ message: 'Server error while updating announcement.', error: error.message });
+    res.status(500).json({ message: 'Server error while updating announcement.', error: "An error occurred" });
   }
 };
 
@@ -344,7 +375,7 @@ export const deleteAnnouncement = async (req, res) => {
     
     res.status(200).json({ message: 'Announcement deleted successfully.' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error while deleting announcement.', error: error.message });
+    res.status(500).json({ message: 'Server error while deleting announcement.', error: "An error occurred" });
   }
 };
 
@@ -375,7 +406,7 @@ export const checkAdminRole = async (req, res) => {
     res.status(200).json({ isAdmin });
   } catch (error) {
     console.error(`Error checking admin role for user with ID ${userId}:`, error);
-    res.status(500).json({ message: 'Server error while checking admin role.', error: error.message });
+    res.status(500).json({ message: 'Server error while checking admin role.', error: "An error occurred" });
   }
 };
 
@@ -462,7 +493,7 @@ export const sendEmailToUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Error sending email:', error);
-    res.status(500).json({ message: 'Server error while sending email.', error: error.message });
+    res.status(500).json({ message: 'Server error while sending email.', error: "An error occurred" });
   }
 };
 
@@ -510,6 +541,6 @@ export const sendBulkCustomEmail = async (req, res) => {
     });
   } catch (error) {
     console.error('Error sending bulk email:', error);
-    res.status(500).json({ message: 'Server error while sending bulk email.', error: error.message });
+    res.status(500).json({ message: 'Server error while sending bulk email.', error: "An error occurred" });
   }
 };

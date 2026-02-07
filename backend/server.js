@@ -13,30 +13,44 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.stripe.com"],
+      frameSrc: ["'self'", "https://js.stripe.com"],
+      connectSrc: ["'self'", "https://api.stripe.com", process.env.FRONTEND_URL || 'http://localhost:5173'],
+      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+app.use(cors({ 
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true 
+}));
 app.use(morgan('combined'));
+
+// Enforce HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+      return res.redirect('https://' + req.headers.host + req.url);
+    }
+    next();
+  });
+}
 
 // Apply general rate limiting to all routes
 app.use(apiLimiter);
 
-// The webhook route needs a raw body, so we apply it before express.json().
-// We have already configured the raw body parser in the webhooks.routes.js file itself,
-// so we can mount the entire router here.
-// Note: For this to work, the webhook router must be separate from the main api router if the main router is used after express.json()
-// To keep it simple and clean, we will mount all routes here.
-
-// All API routes are handled by the apiRouter
-// The webhook route within it has its own body parser, which will be used for that specific route.
-// For all other routes, we need the express.json() middleware.
-// To solve this, we will apply the webhook route BEFORE the global json parser.
-
-// We need to import the webhook router separately to achieve this.
 import webhooksRouter from './src/api/v1/routes/webhooks.routes.js';
 app.use('/api/v1/webhooks', webhooksRouter);
 
-// Now, we can use the JSON parser for all other routes
-app.use(express.json());
+// Now, we can use the JSON parser for all other routes with size limit
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // And now we mount the rest of the API routes
 app.use('/api/v1', apiRouter);

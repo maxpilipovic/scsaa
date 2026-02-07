@@ -11,8 +11,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const YOUR_DOMAIN = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Store your price IDs in a secure way, like environment variables.
-const RECURRING_PRICE_ID = 'price_1SNgo1Ag7ZN6KXnzDFTtY6fc';
-const ONE_TIME_PRICE_ID = 'price_1SNgpaAg7ZN6KXnztU1ZKd6T';
+const RECURRING_PRICE_ID = process.env.RECURRING_PRICE_ID; 
+const ONE_TIME_PRICE_ID = process.env.ONETIME_PRICE_ID;
 
 export const createCheckoutSession = async (req, res) => {
   const { priceId, userId } = req.body;
@@ -62,7 +62,7 @@ export const createCheckoutSession = async (req, res) => {
       error: error.message,
     });
     
-    res.status(500).json({ error: 'Failed to create checkout session.', message: error.message });
+    res.status(500).json({ error: 'Failed to create checkout session. Please try again.' });
   }
 };
 
@@ -75,9 +75,12 @@ export const createDonationSession = async (req, res) => {
     return res.status(400).json({ error: 'Amount, User ID, and donation type are required.' });
   }
 
-  // Validate amount (minimum $1 = 100 cents)
+  // Validate amount (minimum $1 = 100 cents, maximum $1,000,000 = 100,000,000 cents)
   if (amount < 100) {
     return res.status(400).json({ error: 'Minimum donation amount is $1.' });
+  }
+  if (amount > 100000000) {
+    return res.status(400).json({ error: 'Maximum donation amount is $1,000,000.' });
   }
 
   try {
@@ -178,7 +181,7 @@ export const createDonationSession = async (req, res) => {
       error: error.message,
     });
     
-    res.status(500).json({ error: 'Failed to create donation session.', message: error.message });
+    res.status(500).json({ error: 'Failed to create donation session. Please try again.' });
   }
 };
 
@@ -228,6 +231,6 @@ export const createPortalSession = async (req, res) => {
       error: error.message,
     });
     
-    res.status(500).json({ error: 'Failed to create portal session.', message: error.message });
+    res.status(500).json({ error: 'Failed to create portal session. Please try again.' });
   }
 };
