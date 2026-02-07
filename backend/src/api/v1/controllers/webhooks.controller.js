@@ -24,80 +24,213 @@ export const handleStripeWebhook = async (req, res) => {
     // req.body is raw because of express.raw()
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
-    console.error('❌ Webhook verification failed:', err.message);
+    console.error('Webhook verification failed:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   switch (event.type) {
     // ---------------------------------------------------------
-    // 1) FIRST SUBSCRIPTION PURCHASE
+    // 1) CHECKOUT SESSION COMPLETED (Subscriptions & One-time Payments)
     // ---------------------------------------------------------
     case 'checkout.session.completed': {
       const session = event.data.object;
-
-      if (session.mode !== 'subscription') break;
-
       const userId = session.client_reference_id;
       const customerId = session.customer;
-      const subscriptionId = session.subscription;
 
-      if (!userId || !customerId || !subscriptionId) break;
+      console.log('Checkout session completed:', {
+        mode: session.mode,
+        metadata: session.metadata,
+        amount_total: session.amount_total,
+        userId,
+        customerId
+      });
+
+      if (!userId) {
+        console.log('Missing userId, skipping...');
+        break;
+      }
+
+      // For subscriptions, we need a customer ID
+      if (session.mode === 'subscription' && !customerId) {
+        console.log('Missing customerId for subscription, skipping...');
+        break;
+      }
 
       try {
-        const sub = await stripe.subscriptions.retrieve(subscriptionId);
+        // Handle subscription (membership or recurring donation)
+        if (session.mode === 'subscription') {
+          const subscriptionId = session.subscription;
+          if (!subscriptionId) break;
 
-        const item = sub.items.data[0];
-        const periodEnd = item.current_period_end;
-        const expiresAt = toIso(periodEnd);
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          const item = sub.items.data[0];
+          const periodEnd = item.current_period_end;
+          const expiresAt = toIso(periodEnd);
 
-        await supabase.from('memberships').upsert(
-          {
-            user_id: userId,
-            stripe_customer_id: customerId,
-            year: new Date().getFullYear(),
-            status: 'active',
-            paid_at: new Date().toISOString(),
-            expires_at: expiresAt,
-          },
-          { onConflict: 'user_id' }
-        );
+          // Check if this is a donation subscription
+          const isDonation = session.metadata?.donation_type === 'monthly';
 
-        // Get user email for confirmation
-        const { data: user } = await supabase
-          .from('users')
-          .select('email, first_name, last_name')
-          .eq('id', userId)
-          .single();
+          if (isDonation) {
+            // Record the donation subscription in payments table
+            const amount = session.amount_total / 100;
+            
+            const { data, error } = await supabase.from('payments').insert({
+              user_id: userId,
+              dues_amount: amount,
+              processing_fee: 0,
+              stripe_payment_id: subscriptionId,
+              status: 'succeeded',
+            });
 
-        // Log the subscription creation
-        await logSubscriptionAction(userId, 'SUBSCRIBED', {
-          customer_id: customerId,
-          subscription_id: subscriptionId,
-          expires_at: expiresAt,
-        });
+            if (error) {
+              console.error('Error inserting monthly donation to payments table:', error);
+            } else {
+              console.log('Monthly donation payment inserted:', data);
+            }
 
-        // Send confirmation email
-        if (user && user.email) {
-          const emailHtml = paymentConfirmationTemplate(
-            `${user.first_name} ${user.last_name}`,
-            50, // Default amount - adjust based on your pricing
-            subscriptionId
-          );
+            // Store the donation subscription info for management
+            await supabase.from('memberships').upsert(
+              {
+                user_id: userId,
+                stripe_customer_id: customerId,
+                year: new Date().getFullYear(),
+                status: 'active',
+                paid_at: new Date().toISOString(),
+                expires_at: expiresAt,
+              },
+              { onConflict: 'user_id' }
+            );
+
+            // Log the donation
+            await logPaymentAction(userId, 'DONATION_SUBSCRIPTION_CREATED', {
+              customer_id: customerId,
+              subscription_id: subscriptionId,
+              amount: amount,
+              type: 'monthly_recurring',
+            });
+
+            console.log(`Monthly donation subscription created for ${userId}`);
+          } else {
+            // Regular membership subscription
+            await supabase.from('memberships').upsert(
+              {
+                user_id: userId,
+                stripe_customer_id: customerId,
+                year: new Date().getFullYear(),
+                status: 'active',
+                paid_at: new Date().toISOString(),
+                expires_at: expiresAt,
+              },
+              { onConflict: 'user_id' }
+            );
+
+            // Get user email for confirmation
+            const { data: user } = await supabase
+              .from('users')
+              .select('email, first_name, last_name')
+              .eq('id', userId)
+              .single();
+
+            // Log the subscription creation
+            await logSubscriptionAction(userId, 'SUBSCRIBED', {
+              customer_id: customerId,
+              subscription_id: subscriptionId,
+              expires_at: expiresAt,
+            });
+
+            // Send confirmation email
+            if (user && user.email) {
+              const emailHtml = paymentConfirmationTemplate(
+                `${user.first_name} ${user.last_name}`,
+                50, // Default amount - adjust based on your pricing
+                subscriptionId
+              );
+              
+              await sendEmail(
+                user.email,
+                'Welcome to SCSAA - Membership Active',
+                emailHtml
+              );
+            }
+
+            console.log(`Membership provisioned for ${userId}`);
+          }
+        } 
+        // Handle one-time payment (donation)
+        else if (session.mode === 'payment') {
+          console.log('Processing one-time payment with metadata:', session.metadata);
           
-          await sendEmail(
-            user.email,
-            'Welcome to SCSAA - Membership Active',
-            emailHtml
-          );
-        }
+          const isDonation = session.metadata?.donation_type === 'one-time';
+          
+          console.log('Is this a donation?', isDonation);
+          
+          if (isDonation) {
+            const amount = session.amount_total / 100;
+            const paymentIntentId = session.payment_intent;
 
-        console.log(`Membership provisioned for ${userId}`);
+            console.log('Inserting one-time donation:', {
+              user_id: userId,
+              dues_amount: amount,
+              payment_id: paymentIntentId
+            });
+
+            // Record the one-time donation in payments table
+            const { data, error } = await supabase.from('payments').insert({
+              user_id: userId,
+              dues_amount: amount,
+              processing_fee: 0,
+              stripe_payment_id: paymentIntentId,
+              status: 'succeeded',
+            });
+
+            if (error) {
+              console.error('Error inserting one-time donation to payments table:', error);
+            } else {
+              console.log('One-time donation payment inserted successfully:', data);
+            }
+
+            // Log the donation
+            await logPaymentAction(userId, 'DONATION_SUCCEEDED', {
+              customer_id: customerId || 'none',
+              payment_id: paymentIntentId,
+              amount: amount,
+              type: 'one-time',
+            });
+
+            // Get user email for confirmation
+            const { data: user } = await supabase
+              .from('users')
+              .select('email, first_name, last_name')
+              .eq('id', userId)
+              .single();
+
+            // Send thank you email
+            if (user && user.email) {
+              const emailHtml = paymentConfirmationTemplate(
+                `${user.first_name} ${user.last_name}`,
+                amount,
+                paymentIntentId
+              );
+              
+              await sendEmail(
+                user.email,
+                'Thank You for Your Donation - SCSAA',
+                emailHtml
+              );
+            }
+
+            console.log(`One-time donation of $${amount} recorded for ${userId}`);
+          } else {
+            console.log('One-time payment detected but not identified as donation. Metadata:', session.metadata);
+          }
+        }
       } catch (error) {
-        console.error('Error provisioning subscription:', error);
+        console.error('Error processing checkout session:', error);
         // Log the error
         if (userId) {
-          await logSubscriptionAction(userId, 'SUBSCRIPTION_PROVISIONING_FAILED', {
+          await logPaymentAction(userId, 'CHECKOUT_PROCESSING_FAILED', {
             error: error.message,
+            session_id: session.id,
           });
         }
       }
@@ -106,7 +239,7 @@ export const handleStripeWebhook = async (req, res) => {
     }
 
     // ---------------------------------------------------------
-    // 2) RENEWAL PAYMENT SUCCEEDED
+    // 2) RENEWAL PAYMENT SUCCEEDED (Memberships & Recurring Donations)
     // ---------------------------------------------------------
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object;
@@ -120,6 +253,14 @@ export const handleStripeWebhook = async (req, res) => {
       console.log(`Recording payment for ${customerId}`);
 
       try {
+        // Check if this is a donation subscription by looking at metadata
+        let isDonation = false;
+        if (invoice.subscription) {
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+          // Check if this subscription has donation metadata
+          isDonation = subscription.metadata?.donation_type === 'monthly';
+        }
+
         const { data: membership } = await supabase
           .from('memberships')
           .select('user_id')
@@ -134,6 +275,7 @@ export const handleStripeWebhook = async (req, res) => {
           .eq('id', membership.user_id)
           .single();
 
+        // Record payment in payments table
         await supabase.from('payments').insert({
           user_id: membership.user_id,
           dues_amount: invoice.amount_paid / 100,
@@ -142,35 +284,61 @@ export const handleStripeWebhook = async (req, res) => {
           status: 'succeeded',
         });
 
-        // Log the payment success
-        await logPaymentAction(membership.user_id, 'PAYMENT_SUCCEEDED', {
-          customer_id: customerId,
-          payment_id: paymentId,
-          amount: invoice.amount_paid / 100,
-          period: 'renewal',
-        });
+        if (isDonation) {
+          // Log the recurring donation payment
+          await logPaymentAction(membership.user_id, 'DONATION_RENEWAL_SUCCEEDED', {
+            customer_id: customerId,
+            payment_id: paymentId,
+            amount: invoice.amount_paid / 100,
+            type: 'monthly_recurring',
+          });
 
-        // Send confirmation email
-        if (user && user.email) {
-          const emailHtml = renewalConfirmationTemplate(
-            `${user.first_name} ${user.last_name}`,
-            new Date().toISOString(),
-            invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toISOString() : null
-          );
-          
-          await sendEmail(
-            user.email,
-            'Membership Renewed - Payment Received',
-            emailHtml
-          );
+          // Send donation thank you email
+          if (user && user.email) {
+            const emailHtml = paymentConfirmationTemplate(
+              `${user.first_name} ${user.last_name}`,
+              invoice.amount_paid / 100,
+              paymentId
+            );
+            
+            await sendEmail(
+              user.email,
+              'Thank You - Monthly Donation Received',
+              emailHtml
+            );
+          }
+
+          console.log(`Recurring donation payment recorded (${paymentId})`);
+        } else {
+          // Log the membership renewal payment
+          await logPaymentAction(membership.user_id, 'PAYMENT_SUCCEEDED', {
+            customer_id: customerId,
+            payment_id: paymentId,
+            amount: invoice.amount_paid / 100,
+            period: 'renewal',
+          });
+
+          // Send membership renewal email
+          if (user && user.email) {
+            const emailHtml = renewalConfirmationTemplate(
+              `${user.first_name} ${user.last_name}`,
+              new Date().toISOString(),
+              invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toISOString() : null
+            );
+            
+            await sendEmail(
+              user.email,
+              'Membership Renewed - Payment Received',
+              emailHtml
+            );
+          }
+
+          console.log(`Membership payment recorded (${paymentId})`);
         }
-
-        console.log(`Payment recorded (${paymentId})`);
       } catch (error) {
         console.error('Error recording payment:', error);
         // Log the error
         if (customerId) {
-          // We don't have userId here, but we can log with a note
           console.error('Failed to record payment webhook for customer:', customerId);
         }
       }

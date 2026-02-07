@@ -184,7 +184,7 @@ function DashboardPage() {
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} membershipData={membershipData} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
-          {activeTab === "settings" && <SettingsPage user={user} />}
+          {activeTab === "settings" && <SettingsPage user={user} membershipData={membershipData} />}
         </div>
       </div>
     </div>

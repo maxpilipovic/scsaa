@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ExternalLink, Loader2 } from 'lucide-react';
 
 const ManageSubscriptionButton = ({ userId }) => {
   const [loading, setLoading] = useState(false);
@@ -45,11 +46,25 @@ const ManageSubscriptionButton = ({ userId }) => {
       <button
         onClick={handleManageSubscription}
         disabled={loading}
-        className="px-4 py-2 font-bold text-white bg-gray-600 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-400"
+        className="flex items-center gap-2 px-6 py-3 font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
-        {loading ? 'Loading...' : 'Manage Billing & Subscription'}
+        {loading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Loading Portal...
+          </>
+        ) : (
+          <>
+            <ExternalLink className="w-5 h-5" />
+            Open Billing Portal
+          </>
+        )}
       </button>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="mt-3 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
 
 // The Price IDs from your Stripe products
 const recurringPriceId = "price_1SNgo1Ag7ZN6KXnzDFTtY6fc";
@@ -60,71 +61,94 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
 
   console.log("Membership Status in PaymentOptions:", membershipStatus);
   return (
-    <div className="bg-white/90 backdrop-blur shadow-lg rounded-2xl p-10 max-w-md mx-auto border border-gray-200">
-      <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-6 tracking-tight">
-        Membership Dues
-      </h2>
-
-      <p className="text-center text-gray-600 mb-8">
-        Support the Sidwell, Crook & Stewart Alumni Association (Beta-Gamma
-        Chapter)
+    <div>
+      <p className="text-gray-600 mb-6">
+        Support the Sidwell, Crook & Stewart Alumni Association (Beta-Gamma Chapter)
       </p>
 
       {error && (
         <div
-          className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm"
+          className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-start gap-2"
           role="alert"
         >
-          {error}
+          <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
       {/* MESSAGE BOX */}
       {isActive && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-5 rounded-xl text-center font-medium shadow-inner">
-          Your membership is currently <span className="font-bold">ACTIVE</span>.
-          <br />
-          You will be notified before it expires.
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-green-800">Membership Active</p>
+              <p className="text-sm text-green-700 mt-1">
+                Your membership is currently active. You will be notified before it expires.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {isPendingCancellation && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-5 rounded-xl text-center font-medium shadow-inner mb-6">
-          Your membership is <span className="font-bold">Pending Cancellation</span> but still
-          <span className="font-bold"> ACTIVE</span>.
-          <br />You can resume auto-renew anytime in <span className="font-semibold">Settings</span>.
+        <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-yellow-800">Pending Cancellation</p>
+              <p className="text-sm text-yellow-700 mt-1">
+                Your membership is still active but will not auto-renew. You can resume auto-renew anytime in Settings.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
       {/* PAYMENT CARD (Only show if not active or pending-cancellation) */}
       {!isMembershipValid && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 shadow-inner">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
-            Annual Membership
-          </h3>
+        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-6 relative overflow-hidden">
+          {/* Decorative element */}
+          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-indigo-200 rounded-full opacity-20"></div>
+          
+          <div className="relative">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-xl font-bold text-gray-900">Annual Membership</h3>
+            </div>
 
-          <p className="text-center text-gray-700 mb-6">
-            <span className="text-4xl font-extrabold text-indigo-600">$50</span>
-            <span className="text-gray-500 text-sm ml-1">/ year</span>
-          </p>
+            <p className="text-center mb-6">
+              <span className="text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+                $50
+              </span>
+              <span className="text-gray-500 text-sm ml-2">/ year</span>
+            </p>
 
-          <button
-            onClick={() => handleCheckout(recurringPriceId)}
-            disabled={loading === recurringPriceId}
-            className="
-              w-full bg-indigo-600 text-white text-lg font-bold py-3 rounded-xl 
-              hover:bg-indigo-700 shadow-md hover:shadow-lg 
-              transition-all duration-200 ease-out 
-              focus:outline-none focus:ring-4 focus:ring-indigo-300
-              disabled:bg-gray-400 disabled:cursor-not-allowed
-            "
-          >
-            {loading === recurringPriceId ? "Processing..." : "Pay Annual Dues"}
-          </button>
+            <button
+              onClick={() => handleCheckout(recurringPriceId)}
+              disabled={loading === recurringPriceId}
+              className="
+                w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-lg font-bold py-3 rounded-xl 
+                hover:from-indigo-700 hover:to-blue-700 shadow-md hover:shadow-lg 
+                transition-all duration-200 ease-out transform hover:-translate-y-0.5
+                focus:outline-none focus:ring-4 focus:ring-indigo-300
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+              "
+            >
+              {loading === recurringPriceId ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Processing...
+                </span>
+              ) : (
+                "Pay Annual Dues"
+              )}
+            </button>
+          </div>
         </div>
       )}
 
-      <p className="text-center text-gray-500 text-sm mt-6">
+      <p className="text-center text-gray-500 text-sm mt-4">
         Your support helps fund events, outreach, and alumni initiatives.
       </p>
     </div>
