@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
 
 // The Price IDs from your Stripe products
-const recurringPriceId = "price_1SNgo1Ag7ZN6KXnzDFTtY6fc";
+const recurringPriceId = import.meta.env.VITE_STRIPE_RECURRING_PRICE_ID;
 //const oneTimePriceId = "price_1SNgpaAg7ZN6KXnztU1ZKd6T";
 
 const PaymentOptions = ({ userId, membershipStatus }) => {
@@ -113,13 +113,12 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
           
           <div className="relative">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-indigo-600" />
               <h3 className="text-xl font-bold text-gray-900">Annual Membership</h3>
             </div>
 
             <p className="text-center mb-6">
               <span className="text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                $50
+                $100
               </span>
               <span className="text-gray-500 text-sm ml-2">/ year</span>
             </p>
