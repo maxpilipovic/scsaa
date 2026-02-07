@@ -27,11 +27,11 @@ export const apiLimiter = rateLimit({
 /**
  * Auth rate limiter
  * Allows for legitimate failed login attempts while preventing brute force
- * Limits to 20 requests per 15 minutes per IP
+ * Limits to 40 requests per 15 minutes per IP
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Realistic limit - allows password mistakes without locking out users
+  max: 40, // Realistic limit - allows password mistakes without locking out users
   skipSuccessfulRequests: true, // Don't count successful auth attempts
   standardHeaders: true,
   legacyHeaders: false,
