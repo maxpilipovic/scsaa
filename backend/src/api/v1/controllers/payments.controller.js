@@ -41,7 +41,7 @@ export const createCheckoutSession = async (req, res) => {
       ],
       mode: mode,
       success_url: `${YOUR_DOMAIN}/dashboard?payment_success=true`,
-      cancel_url: `${YOUR_DOMAIN}/payments?payment_cancelled=true`,
+      cancel_url: `${YOUR_DOMAIN}/dashboard?payment_cancelled=true`,
     });
 
     // Log the payment session initiation
@@ -94,7 +94,7 @@ export const createDonationSession = async (req, res) => {
     const sessionConfig = {
       client_reference_id: userId,
       success_url: `${YOUR_DOMAIN}/dashboard?donation_success=true`,
-      cancel_url: `${YOUR_DOMAIN}/payments?donation_cancelled=true`,
+      cancel_url: `${YOUR_DOMAIN}/dashboard?donation_cancelled=true`,
       metadata: {
         user_id: userId,
         donation_type: type,

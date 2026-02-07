@@ -59,6 +59,10 @@ function DashboardPage() {
       showAlert('Payment successful! Thank you for your contribution.', 'success');
     } else if (queryParams.get('payment_cancelled') === 'true') {
       showAlert('Payment was cancelled. You have not been charged.', 'error');
+    } else if (queryParams.get('donation_success') === 'true') {
+      showAlert('Thank you for your generous donation!', 'success');
+    } else if (queryParams.get('donation_cancelled') === 'true') {
+      showAlert('Donation was cancelled. You have not been charged.', 'error');
     }
 
     return () => {

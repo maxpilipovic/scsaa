@@ -1,6 +1,5 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import PaymentTable from '../components/PaymentTable';
 import PaymentOptions from '../components/PaymentOptions';
 import { CreditCard, Heart, History } from 'lucide-react';
@@ -10,15 +9,6 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
   const [donationType, setDonationType] = useState('one-time'); // 'one-time' or 'monthly'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  // Redirect to dashboard if payment was cancelled
-  useEffect(() => {
-    if (searchParams.get('payment_cancelled') === 'true') {
-      navigate('/dashboard?payment_cancelled=true', { replace: true });
-    }
-  }, [searchParams, navigate]);
 
   const handleCustomDonation = async () => {
     const amount = parseFloat(customAmount);
