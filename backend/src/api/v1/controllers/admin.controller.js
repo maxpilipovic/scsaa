@@ -263,7 +263,7 @@ export const updateEvent = async (req, res) => {
 
 export const deleteEvent = async (req, res) => {
   const { eventId } = req.params;
-  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const adminUserId = req.user?.id; // Admin user from auth middleware
   
   try {
     const { error } = await supabase.from('events').delete().eq('event_id', eventId);
@@ -276,6 +276,7 @@ export const deleteEvent = async (req, res) => {
     
     res.status(200).json({ message: 'Event deleted successfully.' });
   } catch (error) {
+    console.error(`Error deleting event with ID ${eventId}:`, error);
     res.status(500).json({ message: 'Server error while deleting event.', error: "An error occurred" });
   }
 };
@@ -362,7 +363,7 @@ export const updateAnnouncement = async (req, res) => {
 
 export const deleteAnnouncement = async (req, res) => {
   const { announcementId } = req.params;
-  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const adminUserId = req.user?.id; // Admin user from auth middleware
   
   try {
     const { error } = await supabase.from('announcements').delete().eq('announcements_id', announcementId);
@@ -375,6 +376,7 @@ export const deleteAnnouncement = async (req, res) => {
     
     res.status(200).json({ message: 'Announcement deleted successfully.' });
   } catch (error) {
+    console.error(`Error deleting announcement with ID ${announcementId}:`, error);
     res.status(500).json({ message: 'Server error while deleting announcement.', error: "An error occurred" });
   }
 };
