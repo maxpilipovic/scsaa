@@ -10,7 +10,7 @@ function Hero() {
       <div className="max-w-7xl mx-auto text-center">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-serif font-bold text-gray-900">
-            Sidwell, Crook & Stewart
+            Sidwell, Crook, Stewart
           </h1>
           <p className="mt-2 text-xl sm:text-2xl font-serif text-gray-700">
             Alumni Association · Beta-Gamma Chapter
