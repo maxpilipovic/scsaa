@@ -58,9 +58,6 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg">
-            <CreditCard className="w-8 h-8 text-white" />
-          </div>
           <div>
             <h1 className="text-4xl font-bold text-gray-800">Payments & Donations</h1>
             <p className="text-gray-600 mt-1">Manage your membership and support the association</p>
