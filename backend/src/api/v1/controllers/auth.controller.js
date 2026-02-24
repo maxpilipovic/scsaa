@@ -61,3 +61,42 @@ export const logAuthEvent = async (req, res) => {
     res.status(500).json({ message: 'Error logging auth event.', error: "An error occurred" });
   }
 };
+
+/**
+ * Forgot password - check if email exists and send reset email
+ */
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: "Email is required." });
+  }
+
+  const redirectTo = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password`;
+
+  console.log(`[Forgot Password] Attempting to send reset email to: ${email}`);
+  console.log(`[Forgot Password] Redirect URL: ${redirectTo}`);
+
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+  //Respond the same to avoid issues with security.
+  if (error) {
+    console.error("❌ [Forgot Password] Error sending reset email:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      details: error
+    });
+    //Still return success!
+  } else {
+    console.log("✅ [Forgot Password] Reset email request sent successfully");
+    if (data) {
+      console.log("[Forgot Password] Response data:", data);
+    }
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "If an account exists for that email, you’ll receive a password reset link shortly.",
+  });
+};

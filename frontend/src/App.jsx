@@ -9,6 +9,8 @@ import UserDetailsPage from "./pages/UserDetailsPage";
 import AdminPage from "./pages/AdminPage";
 import AdminEventsPage from "./pages/AdminEventsPage";
 import AdminAnnouncementsPage from "./pages/AdminAnnouncementsPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -27,6 +29,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/user/:userId" element={
             <AdminProvider>
