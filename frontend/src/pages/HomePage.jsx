@@ -1,7 +1,7 @@
 import React from 'react';
 import Hero from '../components/Hero';
 import Benefits from '../components/Benefits';
-import Gallery from '../components/Gallery';
+import LandingGallery from '../components/LandingGallery';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -11,7 +11,7 @@ function HomePage() {
       <Navbar />
       <Hero />
       <Benefits />
-      <Gallery />
+      <LandingGallery />
       <Footer />
     </div>
   );
