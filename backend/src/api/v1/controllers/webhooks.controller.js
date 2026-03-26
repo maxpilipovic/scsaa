@@ -140,9 +140,10 @@ export const handleStripeWebhook = async (req, res) => {
 
             // Send confirmation email
             if (user && user.email) {
+              const amount = session.amount_total / 100;
               const emailHtml = paymentConfirmationTemplate(
                 `${user.first_name} ${user.last_name}`,
-                50, // Default amount - adjust based on your pricing
+                amount,
                 subscriptionId
               );
               

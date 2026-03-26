@@ -109,7 +109,7 @@ export const announcementEmailTemplate = (announcementTitle, announcementPreview
     <body>
       <div class="container">
         <div class="header">
-          <h2>📢 New Announcement</h2>
+          <h2>New Announcement</h2>
         </div>
         <div class="content">
           <h3>${announcementTitle}</h3>
@@ -147,7 +147,7 @@ export const eventEmailTemplate = (eventName, eventDescription, eventLocation, e
     <body>
       <div class="container">
         <div class="header">
-          <h2>📅 New Event: ${eventName}</h2>
+          <h2>New Event: ${eventName}</h2>
         </div>
         <div class="content">
           <p>We have a new event coming up!</p>
@@ -191,7 +191,7 @@ export const paymentConfirmationTemplate = (memberName, amount, transactionId, s
     <body>
       <div class="container">
         <div class="header">
-          <h2>✅ Payment Received</h2>
+          <h2>Payment Received</h2>
         </div>
         <div class="content">
           <p>Hi ${memberName},</p>
