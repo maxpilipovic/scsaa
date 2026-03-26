@@ -181,6 +181,7 @@ export const getTotalRevenue = async (req, res) => {
   }
 };
 
+//This is actually yearly, just can't be fucked to change. Lowkey
 export const getMonthlyRecurringRevenue = async (req, res) => {
   try {
 
@@ -191,7 +192,7 @@ export const getMonthlyRecurringRevenue = async (req, res) => {
 
     if (activeMembersError) throw activeMembersError;
 
-    const yearlyRecurringAmountPerMember = 50; //Example: $50/year
+    const yearlyRecurringAmountPerMember = 100; //Example: $50/year
 
     const mrr = count * yearlyRecurringAmountPerMember;
     res.json({ mrr });

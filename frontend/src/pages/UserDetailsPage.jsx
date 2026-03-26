@@ -152,7 +152,7 @@ function UserDetailsPage() {
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="mb-6">
         <button
-          onClick={() => navigate('/dashboard', { state: { defaultTab: 'Admin' } })}
+          onClick={() => navigate('/dashboard/admin')}
           className="text-indigo-600 hover:text-indigo-800 font-medium"
         >
           &larr; Back to Admin Dashboard
