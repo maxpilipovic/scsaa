@@ -254,12 +254,14 @@ export const handleStripeWebhook = async (req, res) => {
       console.log(`Recording payment for ${customerId}`);
 
       try {
+        let resolvedUserId = null;
         // Check if this is a donation subscription by looking at metadata
         let isDonation = false;
         if (invoice.subscription) {
           const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
           // Check if this subscription has donation metadata
           isDonation = subscription.metadata?.donation_type === 'monthly';
+          resolvedUserId = subscription.metadata?.user_id || null;
         }
 
         const { data: membership } = await supabase
@@ -268,17 +270,19 @@ export const handleStripeWebhook = async (req, res) => {
           .eq('stripe_customer_id', customerId)
           .single();
 
-        if (!membership) break;
+        resolvedUserId = membership?.user_id || resolvedUserId;
+
+        if (!resolvedUserId) break;
 
         const { data: user } = await supabase
           .from('users')
           .select('email, first_name, last_name')
-          .eq('id', membership.user_id)
+          .eq('id', resolvedUserId)
           .single();
 
         // Record payment in payments table
         await supabase.from('payments').insert({
-          user_id: membership.user_id,
+          user_id: resolvedUserId,
           dues_amount: invoice.amount_paid / 100,
           processing_fee: 0,
           stripe_payment_id: paymentId,
@@ -287,7 +291,7 @@ export const handleStripeWebhook = async (req, res) => {
 
         if (isDonation) {
           // Log the recurring donation payment
-          await logPaymentAction(membership.user_id, 'DONATION_RENEWAL_SUCCEEDED', {
+          await logPaymentAction(resolvedUserId, 'DONATION_RENEWAL_SUCCEEDED', {
             customer_id: customerId,
             payment_id: paymentId,
             amount: invoice.amount_paid / 100,
@@ -312,7 +316,7 @@ export const handleStripeWebhook = async (req, res) => {
           console.log(`Recurring donation payment recorded (${paymentId})`);
         } else {
           // Log the membership renewal payment
-          await logPaymentAction(membership.user_id, 'PAYMENT_SUCCEEDED', {
+          await logPaymentAction(resolvedUserId, 'PAYMENT_SUCCEEDED', {
             customer_id: customerId,
             payment_id: paymentId,
             amount: invoice.amount_paid / 100,

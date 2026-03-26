@@ -31,7 +31,7 @@ export const createCheckoutSession = async (req, res) => {
   }
 
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig = {
       client_reference_id: userId, // Add this line
       line_items: [
         {
@@ -42,7 +42,20 @@ export const createCheckoutSession = async (req, res) => {
       mode: mode,
       success_url: `${YOUR_DOMAIN}/dashboard?payment_success=true`,
       cancel_url: `${YOUR_DOMAIN}/dashboard?payment_cancelled=true`,
-    });
+      metadata: {
+        user_id: userId,
+      },
+    };
+
+    if (isSubscription) {
+      sessionConfig.subscription_data = {
+        metadata: {
+          user_id: userId,
+        },
+      };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     // Log the payment session initiation
     await logPaymentAction(userId, 'SESSION_CREATED', {
