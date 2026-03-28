@@ -54,9 +54,7 @@ function RegisterPage() {
                     pledge_class: formData.pledge_class ? Number(formData.pledge_class) : 0,
                     phone_number: formData.phone_number,
                     address: formData.address,
-                    dob: formData.dob, //Stored as YYYY-MM-DD
-                    accepted_terms: true,
-                    accepted_terms_at: new Date().toISOString()
+                    dob: formData.dob //Stored as YYYY-MM-DD
                 }
             }
         });
