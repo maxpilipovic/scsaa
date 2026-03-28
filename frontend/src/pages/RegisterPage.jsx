@@ -3,6 +3,7 @@ import { Mail, Lock, Eye, EyeOff, User, Phone, Calendar, Home } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { supabase } from '../lib/supabaseClient';
+import legalPdf from '../assets/SCSAA_Legal_Final.pdf';
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -17,12 +18,16 @@ function RegisterPage() {
     address: '',
     dob: '', //Stored as YYYY-MM-DD
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    acceptedTerms: false
   });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -30,6 +35,11 @@ function RegisterPage() {
 
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match!");
+      return;
+    }
+
+    if (!formData.acceptedTerms) {
+      toast.error("You must agree to the Terms and Conditions before signing up.");
       return;
     }
 
@@ -44,7 +54,9 @@ function RegisterPage() {
                     pledge_class: formData.pledge_class ? Number(formData.pledge_class) : 0,
                     phone_number: formData.phone_number,
                     address: formData.address,
-                    dob: formData.dob //Stored as YYYY-MM-DD
+                    dob: formData.dob, //Stored as YYYY-MM-DD
+                    accepted_terms: true,
+                    accepted_terms_at: new Date().toISOString()
                 }
             }
         });
@@ -247,9 +259,41 @@ function RegisterPage() {
               </div>
             </div>
 
+            {/* Terms and Conditions */}
+            <div className="rounded-xl border-2 border-purple-100 bg-purple-50/60 p-4">
+              <div className="flex items-start gap-3">
+                <input
+                  id="acceptedTerms"
+                  name="acceptedTerms"
+                  type="checkbox"
+                  checked={formData.acceptedTerms}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 h-4 w-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+                />
+                <div>
+                  <label htmlFor="acceptedTerms" className="block text-sm font-semibold text-purple-900">
+                    I agree to the Terms and Conditions
+                  </label>
+                  <p className="mt-1 text-sm text-purple-700">
+                    You must review and accept the SCSAA terms before creating an account.
+                  </p>
+                  <a
+                    href={legalPdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex text-sm font-semibold text-purple-700 underline underline-offset-4 hover:text-purple-900"
+                  >
+                    View Terms and Conditions (PDF)
+                  </a>
+                </div>
+              </div>
+            </div>
+
             {/* Submit */}
             <button
               type="submit"
+              disabled={!formData.acceptedTerms}
               className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
             >
               Create Account
