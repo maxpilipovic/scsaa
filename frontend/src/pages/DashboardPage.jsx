@@ -163,7 +163,12 @@ function DashboardPage() {
           </button>
         </div>
 
-        {personData?.authUser && <Header membershipData={personData.authUser} />}
+        {personData?.authUser && (
+          <Header
+            membershipData={personData.authUser}
+            onOpenSettings={() => setActiveTab('settings')}
+          />
+        )}
 
         <div className="p-8">
           {alert.show && (

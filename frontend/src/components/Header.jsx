@@ -1,7 +1,6 @@
 import React from 'react';
-import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
 
-const Header = ({ membershipData }) => {
+const Header = ({ membershipData, onOpenSettings }) => {
 
   //console.log(membershipData);
 
@@ -15,13 +14,14 @@ const Header = ({ membershipData }) => {
           <p className="text-gray-600 mt-1">Pledge Class: {membershipData.pledge_class}</p>
         </div>
         <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition relative">
-            <Bell size={24} className="text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold transition hover:bg-indigo-700 hover:ring-2 hover:ring-indigo-400 hover:ring-offset-2 focus:outline-none"
+            aria-label="Open settings"
+          >
             {membershipData.first_name.split(' ').map(n => n[0]).join('')}
-          </div>
+          </button>
         </div>
       </div>
     </div>
