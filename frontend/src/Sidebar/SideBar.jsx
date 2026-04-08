@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Home, CreditCard, FileText, Calendar, Settings, LogOut, Shield } from 'lucide-react';
+import { Home, CreditCard, FileText, Calendar, Settings, LogOut, Shield, Image } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -76,6 +76,7 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
         <NavButton icon={CreditCard} label="Payments" tabName="payments" />
         <NavButton icon={Calendar} label="Events" tabName="events" />
         <NavButton icon={FileText} label="Resources" tabName="resources" />
+        <NavButton icon={Image} label="Gallery" tabName="gallery" />
       </nav>
 
       <div className="p-4 border-t border-indigo-800">
