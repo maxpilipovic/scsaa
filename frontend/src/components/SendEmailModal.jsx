@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => {
@@ -13,8 +14,12 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
 
   // If a specific user is passed, add them to selected users
   React.useEffect(() => {
-    if (userId && !selectedUsers.find(u => u.id === userId)) {
-      setSelectedUsers([{ id: userId, email: '', name: userName || 'Unknown' }]);
+    if (userId) {
+      setSelectedUsers(currentUsers => (
+        currentUsers.find(u => u.id === userId)
+          ? currentUsers
+          : [{ id: userId, email: '', name: userName || 'Unknown' }]
+      ));
     }
   }, [userId, userName]);
 
@@ -123,7 +128,7 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
 
       const result = await response.json();
       setMessage({ type: 'success', text: result.message });
-      
+
       // Reset form after success
       setTimeout(() => {
         setSubject('');
@@ -146,41 +151,39 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 sticky top-0 bg-white">
-          <h2 className="text-2xl font-bold text-gray-900">Send Email</h2>
-          <button 
+    <div className="fixed inset-0 bg-zinc-950/20 flex items-center justify-center z-50 p-4">
+      <div className="panel-strong w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b border-zinc-200 sticky top-0 bg-white">
+          <h2 className="text-2xl font-bold text-zinc-950">Send Email</h2>
+          <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold transition"
+            className="text-zinc-500 hover:text-black p-2 hover:bg-zinc-100 transition"
+            aria-label="Close email modal"
           >
-            ✕
+            <X size={20} />
           </button>
         </div>
 
-        {/* Message Alert */}
         {message && (
-          <div className={`mx-6 mt-4 p-4 rounded-lg ${
-            message.type === 'success' 
-              ? 'bg-green-50 text-green-800 border border-green-200' 
-              : 'bg-red-50 text-red-800 border border-red-200'
+          <div className={`mx-6 mt-4 p-4 ${
+            message.type === 'success'
+              ? 'bg-green-400/10 text-green-200 border border-green-400/30'
+              : 'bg-red-400/10 text-red-200 border border-red-400/30'
           }`}>
             {message.text}
           </div>
         )}
 
         <form onSubmit={handleSendEmail} className="p-6 space-y-6">
-          {/* Tab Navigation */}
           {!userId && (
-            <div className="flex gap-2 border-b border-gray-200">
+            <div className="flex gap-2 border-b border-zinc-200">
               <button
                 type="button"
                 onClick={() => setActiveTab('single')}
                 className={`px-4 py-2 font-medium border-b-2 transition ${
                   activeTab === 'single'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-zinc-950 text-zinc-950'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-800'
                 }`}
               >
                 Single User
@@ -190,8 +193,8 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
                 onClick={() => setActiveTab('bulk')}
                 className={`px-4 py-2 font-medium border-b-2 transition ${
                   activeTab === 'bulk'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    ? 'border-zinc-950 text-zinc-950'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-800'
                 }`}
               >
                 Multiple Users
@@ -199,10 +202,9 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
             </div>
           )}
 
-          {/* User Search */}
           {!userId && (
             <div className="space-y-3">
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-zinc-700">
                 Search & Select Users
               </label>
               <input
@@ -210,28 +212,28 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
                 placeholder="Search by email or name..."
                 value={searchQuery}
                 onChange={handleSearch}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                className="input-dark"
               />
-              
+
               {searchResults.length > 0 && (
-                <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                <div className="border border-zinc-200 max-h-48 overflow-y-auto">
                   {searchResults.map(user => (
                     <div
                       key={user.id}
-                      className="flex items-center justify-between p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 cursor-pointer transition"
+                      className="flex items-center justify-between p-3 hover:bg-zinc-100 border-b border-zinc-200 last:border-b-0 cursor-pointer transition"
                       onClick={() => addUser(user)}
                     >
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-zinc-950">
                           {user.first_name} {user.last_name}
                         </p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="text-sm text-zinc-500">{user.email}</p>
                       </div>
-                      <button 
-                        type="button" 
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+                      <button
+                        type="button"
+                        className="btn-secondary px-3 py-1 text-sm"
                       >
-                        + Add
+                        Add
                       </button>
                     </div>
                   ))}
@@ -240,25 +242,25 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
             </div>
           )}
 
-          {/* Selected Users */}
           {selectedUsers.length > 0 && (
             <div className="space-y-3">
-              <label className="block text-sm font-semibold text-gray-700">
+              <label className="block text-sm font-semibold text-zinc-700">
                 Selected Recipients ({selectedUsers.length})
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedUsers.map(user => (
-                  <div 
-                    key={user.id} 
-                    className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                  <div
+                    key={user.id}
+                    className="flex items-center gap-2 px-3 py-1 bg-zinc-50 text-zinc-800 text-sm border border-zinc-200"
                   >
                     <span>{user.name}</span>
                     <button
                       type="button"
                       onClick={() => removeUser(user.id)}
-                      className="ml-1 hover:text-blue-600 font-bold"
+                      className="ml-1 hover:text-zinc-950"
+                      aria-label={`Remove ${user.name}`}
                     >
-                      ✕
+                      <X size={14} />
                     </button>
                   </div>
                 ))}
@@ -266,9 +268,8 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
             </div>
           )}
 
-          {/* Subject Input */}
           <div className="space-y-2">
-            <label htmlFor="email-subject" className="block text-sm font-semibold text-gray-700">
+            <label htmlFor="email-subject" className="block text-sm font-semibold text-zinc-700">
               Subject
             </label>
             <input
@@ -277,13 +278,12 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Email subject"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="input-dark"
             />
           </div>
 
-          {/* Body Textarea */}
           <div className="space-y-2">
-            <label htmlFor="email-body" className="block text-sm font-semibold text-gray-700">
+            <label htmlFor="email-body" className="block text-sm font-semibold text-zinc-700">
               Message
             </label>
             <textarea
@@ -291,28 +291,27 @@ const SendEmailModal = ({ isOpen, onClose, userId = null, userName = null }) => 
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Email body (HTML formatting supported)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+              className="input-dark resize-none"
               rows="10"
             />
-            <p className="text-sm text-gray-600">
-              💡 You can use HTML formatting in your message
+            <p className="text-sm text-zinc-500">
+              HTML formatting is supported in this message.
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+          <div className="flex gap-3 justify-end pt-4 border-t border-zinc-200">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-secondary px-6 py-2"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || selectedUsers.length === 0 || !subject.trim() || !body.trim()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary px-6 py-2"
             >
               {isLoading ? 'Sending...' : `Send to ${selectedUsers.length} ${selectedUsers.length === 1 ? 'User' : 'Users'}`}
             </button>

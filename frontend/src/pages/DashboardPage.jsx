@@ -133,7 +133,7 @@ function DashboardPage() {
   if (user && authorized === false) return <ErrorPage message="You are not authorized to view this page." />;
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen page-shell">
       {/* Sidebar for larger screens */}
       <div className="hidden md:flex">
         <SideBar activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={isAdmin} />
@@ -144,12 +144,12 @@ function DashboardPage() {
         <div className="fixed inset-0 z-40 flex md:hidden">
           {/* Overlay */}
           <div
-            className="absolute inset-0 bg-black bg-opacity-50"
+            className="absolute inset-0 bg-white/80"
             onClick={() => setIsSidebarOpen(false)}
           ></div>
 
           {/* Sidebar content */}
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-indigo-900 z-50">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white z-50">
             <SideBar activeTab={activeTab} setActiveTab={setActiveTab} closeSidebar={() => setIsSidebarOpen(false)} isAdmin={isAdmin} />
           </div>
         </div>
@@ -157,8 +157,8 @@ function DashboardPage() {
 
       <div className="flex-1 overflow-auto">
         {/* Hamburger menu button for smaller screens */}
-        <div className="md:hidden p-4">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-gray-500 focus:outline-none">
+        <div className="md:hidden p-4 border-b border-zinc-200 bg-white">
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-zinc-700 hover:text-black focus:outline-none p-2 hover:bg-zinc-100">
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -170,7 +170,7 @@ function DashboardPage() {
           />
         )}
 
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-88px)]">
           {alert.show && (
             <SuccessMessage
               message={alert.message}

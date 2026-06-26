@@ -5,7 +5,7 @@ const UserTable = ({ users }) => {
   const navigate = useNavigate();
 
   if (!users || users.length === 0) {
-    return <p className="text-gray-500">No users found.</p>;
+    return <p className="text-zinc-500">No users found.</p>;
   }
 
   const handleRowClick = (userId) => {
@@ -16,7 +16,7 @@ const UserTable = ({ users }) => {
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="text-left text-sm text-gray-600 border-b">
+          <tr className="text-left text-xs uppercase tracking-[0.16em] text-zinc-500 border-b border-zinc-200">
             <th className="pb-3 font-medium">Name</th>
             <th className="pb-3 font-medium">Email</th>
             <th className="pb-3 font-medium">Pledge Class</th>
@@ -32,13 +32,13 @@ const UserTable = ({ users }) => {
             return (
               <tr 
                 key={user.id} 
-                className="border-b last:border-b-0 hover:bg-gray-50 cursor-pointer"
+                className="border-b border-zinc-200 last:border-b-0 hover:bg-zinc-100 cursor-pointer transition"
                 onClick={() => handleRowClick(user.id)}
               >
-                <td className="py-4 text-sm text-gray-800">{fullName}</td>
-                <td className="py-4 text-sm text-gray-600">{user.email}</td>
-                <td className="py-4 text-sm text-gray-600">{pledgeClass}</td>
-                <td className="py-4 text-sm text-gray-600">{joinedDate}</td>
+                <td className="py-4 text-sm text-zinc-950">{fullName}</td>
+                <td className="py-4 text-sm text-zinc-600">{user.email}</td>
+                <td className="py-4 text-sm text-zinc-600">{pledgeClass}</td>
+                <td className="py-4 text-sm text-zinc-600">{joinedDate}</td>
               </tr>
             );
           })}

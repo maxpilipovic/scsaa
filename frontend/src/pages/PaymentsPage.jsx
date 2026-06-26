@@ -54,37 +54,37 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-8">
+    <div>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div>
-            <h1 className="text-4xl font-bold text-gray-800">Payments & Donations</h1>
-            <p className="text-gray-600 mt-1">Manage your membership and support the association</p>
+            <h1 className="text-4xl font-black text-zinc-950 tracking-tight">Payments & Donations</h1>
+            <p className="text-zinc-600 mt-1">Manage your membership and support the association</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Membership Payment Card */}
-        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+        <div className="panel p-6">
           <div className="flex items-center gap-2 mb-4">
-            <CreditCard className="w-5 h-5 text-blue-600" />
-            <h2 className="text-xl font-bold text-gray-800">Membership Dues</h2>
+            <CreditCard className="w-5 h-5 text-zinc-500" />
+            <h2 className="text-xl font-bold text-zinc-950">Membership Dues</h2>
           </div>
           <PaymentOptions userId={user?.id} membershipStatus={membershipData} />
         </div>
 
         {/* Custom Donation Card */}
-        <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+        <div className="panel p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Heart className="w-5 h-5 text-red-500" />
-            <h2 className="text-xl font-bold text-gray-800">Make a Donation</h2>
+            <Heart className="w-5 h-5 text-zinc-500" />
+            <h2 className="text-xl font-bold text-zinc-950">Make a Donation</h2>
           </div>
-          <p className="text-gray-600 mb-6">Support the association with a custom donation amount</p>
+          <p className="text-zinc-600 mb-6">Support the association with a custom donation amount</p>
           
           {error && (
-            <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            <div className="bg-red-400/10 border border-red-400/30 text-red-200 px-4 py-3 mb-4 text-sm">
               {error}
             </div>
           )}
@@ -93,20 +93,20 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setDonationType('one-time')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+              className={`flex-1 py-2 px-4 font-medium transition-all ${
                 donationType === 'one-time'
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-white text-black'
+                  : 'bg-zinc-50 text-zinc-700 hover:bg-zinc-100'
               }`}
             >
               One-Time
             </button>
             <button
               onClick={() => setDonationType('monthly')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${
+              className={`flex-1 py-2 px-4 font-medium transition-all ${
                 donationType === 'monthly'
-                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-white text-black'
+                  : 'bg-zinc-50 text-zinc-700 hover:bg-zinc-100'
               }`}
             >
               Monthly
@@ -115,11 +115,11 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
 
           {/* Amount Input */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-700 mb-2">
               Donation Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 font-medium">
                 $
               </span>
               <input
@@ -129,7 +129,7 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
                 placeholder="Enter amount"
-                className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="input-dark pl-8 pr-4"
               />
             </div>
           </div>
@@ -140,7 +140,7 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
               <button
                 key={amount}
                 onClick={() => setCustomAmount(amount.toString())}
-                className="py-2 px-3 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 transition-all"
+                className="py-2 px-3 bg-zinc-50 hover:bg-zinc-100 hover:text-black border border-zinc-200 font-medium text-zinc-800 transition-all"
               >
                 ${amount}
               </button>
@@ -151,16 +151,16 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
           <button
             onClick={handleCustomDonation}
             disabled={loading || !customAmount}
-            className={`w-full py-3 rounded-lg font-bold text-white shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 ${
+            className={`w-full py-3 font-bold transition-all ${
               donationType === 'one-time'
-                ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
-                : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                ? 'bg-zinc-100 text-zinc-950 hover:bg-zinc-100'
+                : 'bg-zinc-100 text-zinc-950 hover:bg-zinc-100'
             } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
           >
             {loading ? 'Processing...' : `Donate ${donationType === 'monthly' ? 'Monthly' : ''}`}
           </button>
 
-          <p className="text-center text-gray-500 text-sm mt-4">
+          <p className="text-center text-zinc-500 text-sm mt-4">
             {donationType === 'monthly' 
               ? 'You can cancel your monthly donation anytime in Settings'
               : 'Thank you for your generous support!'}
@@ -169,10 +169,10 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
       </div>
 
       {/* Payment History */}
-      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+      <div className="panel p-6">
         <div className="flex items-center gap-2 mb-4">
-          <History className="w-5 h-5 text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-800">Payment History</h2>
+          <History className="w-5 h-5 text-zinc-500" />
+          <h2 className="text-xl font-bold text-zinc-950">Payment History</h2>
         </div>
         <PaymentTable payments={paymentHistory} />
       </div>

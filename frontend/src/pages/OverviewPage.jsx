@@ -88,7 +88,7 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
             action={
               <button 
                 onClick={() => setActiveTab('payments')}
-                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                className="text-sm text-zinc-700 hover:text-zinc-950 font-medium"
               >
                 View All
               </button>

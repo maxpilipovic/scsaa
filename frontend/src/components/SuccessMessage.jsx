@@ -4,13 +4,13 @@ import { CheckCircle, XCircle, X } from 'lucide-react';
 const SuccessMessage = ({ message, type = 'success', onClose }) => {
   const isSuccess = type === 'success';
 
-  const bgColor = isSuccess ? 'bg-green-100' : 'bg-red-100';
-  const borderColor = isSuccess ? 'border-green-400' : 'border-red-400';
-  const textColor = isSuccess ? 'text-green-700' : 'text-red-700';
+  const bgColor = isSuccess ? 'bg-green-400/10' : 'bg-red-400/10';
+  const borderColor = isSuccess ? 'border-green-400/30' : 'border-red-400/30';
+  const textColor = isSuccess ? 'text-green-200' : 'text-red-200';
   const Icon = isSuccess ? CheckCircle : XCircle;
 
   return (
-    <div className={`${bgColor} ${borderColor} ${textColor} border px-4 py-3 rounded-md relative mb-6 shadow-sm`}>
+    <div className={`${bgColor} ${borderColor} ${textColor} border px-4 py-3 relative mb-6`}>
       <div className="flex items-center">
         <Icon className="h-5 w-5 mr-3" />
         <span className="block sm:inline font-medium">{message}</span>

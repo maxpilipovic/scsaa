@@ -5,9 +5,9 @@ import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Se
 const EventsList = ({ events, compact = false }) => {
   if (!events || events.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
-        <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-lg">No current events</p>
+      <div className="text-center py-12 text-zinc-500">
+        <Calendar className="w-16 h-16 mx-auto mb-4 text-zinc-700" />
+        <p className="text-lg text-zinc-700">No current events</p>
       </div>
     );
   }

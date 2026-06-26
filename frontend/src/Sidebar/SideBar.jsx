@@ -1,10 +1,8 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Home, CreditCard, FileText, Calendar, Settings, LogOut, Shield } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar, CreditCard, FileText, Home, LogOut, Settings, Shield } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
-import { useLocation } from 'react-router-dom';
 
 const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
   const { signOut } = useAuth();
@@ -19,8 +17,7 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
       }
       navigate('/');
 
-      //Add some notifications everywhere bro
-      toast.success("Signed out successfully", { 
+      toast.success("Signed out successfully", {
         autoClose: 5000,
         position: "top-right",
       });
@@ -30,22 +27,26 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
     }
   };
 
-  const NavButton = ({ icon: Icon, label, tabName }) => (
-    <button
-      onClick={() => {
-        setActiveTab(tabName);
-        if (closeSidebar) {
-          closeSidebar();
-        }
-      }}
-      className={`flex items-center w-full px-4 py-3 mb-2 rounded-lg transition ${
-        activeTab === tabName ? 'bg-indigo-800' : 'hover:bg-indigo-800'
-      }`}
-    >
-      <Icon size={20} className="mr-3" />
-      {label}
-    </button>
-  );
+  const NavButton = ({ icon, label, tabName }) => {
+    const Icon = icon;
+
+    return (
+      <button
+        onClick={() => {
+          setActiveTab(tabName);
+          if (closeSidebar) {
+            closeSidebar();
+          }
+        }}
+        className={`flex items-center w-full px-4 py-3 mb-2 rounded-2xl transition font-medium ${
+          activeTab === tabName ? 'bg-zinc-950 text-white' : 'text-zinc-700 hover:bg-zinc-100 hover:text-black'
+        }`}
+      >
+        <Icon size={20} className="mr-3" />
+        {label}
+      </button>
+    );
+  };
 
   const AdminNavButton = () => (
     <button
@@ -55,8 +56,8 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
           closeSidebar();
         }
       }}
-      className={`flex items-center w-full px-4 py-3 mb-2 rounded-lg transition ${
-        location.pathname.startsWith('/dashboard/admin') ? 'bg-indigo-800' : 'hover:bg-indigo-800'
+      className={`flex items-center w-full px-4 py-3 mb-2 rounded-2xl transition font-medium ${
+        location.pathname.startsWith('/dashboard/admin') ? 'bg-zinc-950 text-white' : 'text-zinc-700 hover:bg-zinc-100 hover:text-black'
       }`}
     >
       <Shield size={20} className="mr-3" />
@@ -65,12 +66,19 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
   );
 
   return (
-    <div className="w-64 bg-indigo-900 text-white flex flex-col">
+    <div className="w-64 h-full bg-white text-zinc-950 flex flex-col border-r border-zinc-200">
       <div className="p-6">
-        <h1 className="text-2xl font-bold">SCSAA</h1>
-        <p className="text-sm text-indigo-200 mt-1">Sigma Pi Beta-Gamma</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl border border-zinc-200 bg-white flex items-center justify-center">
+            <span className="text-zinc-950 font-black text-sm">SP</span>
+          </div>
+          <div>
+            <h1 className="text-2xl font-black leading-tight">SCSAA</h1>
+            <p className="text-sm text-zinc-500 mt-1">Sigma Pi Beta-Gamma</p>
+          </div>
+        </div>
       </div>
-      
+
       <nav className="flex-1 px-4">
         <NavButton icon={Home} label="Dashboard" tabName="overview" />
         <NavButton icon={CreditCard} label="Payments" tabName="payments" />
@@ -78,12 +86,12 @@ const SideBar = ({ activeTab, setActiveTab, closeSidebar, isAdmin }) => {
         <NavButton icon={FileText} label="Resources" tabName="resources" />
       </nav>
 
-      <div className="p-4 border-t border-indigo-800">
+      <div className="p-4 border-t border-zinc-200">
         <NavButton icon={Settings} label="Settings" tabName="settings" />
         {isAdmin && <AdminNavButton />}
         <button
           onClick={handleSignOut}
-          className="flex items-center w-full px-4 py-3 rounded-lg hover:bg-indigo-800 transition"
+          className="flex items-center w-full px-4 py-3 rounded-2xl text-zinc-700 hover:bg-zinc-100 hover:text-black transition font-medium"
         >
           <LogOut size={20} className="mr-3" />
           Logout

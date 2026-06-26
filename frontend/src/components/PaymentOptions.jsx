@@ -62,13 +62,13 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
   console.log("Membership Status in PaymentOptions:", membershipStatus);
   return (
     <div>
-      <p className="text-gray-600 mb-6">
+      <p className="text-zinc-600 mb-6">
         Support the Sidwell, Crook & Stewart Alumni Association (Beta-Gamma Chapter)
       </p>
 
       {error && (
         <div
-          className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-start gap-2"
+          className="bg-red-400/10 border border-red-400/30 text-red-200 px-4 py-3 mb-4 text-sm flex items-start gap-2"
           role="alert"
         >
           <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -78,12 +78,12 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
 
       {/* MESSAGE BOX */}
       {isActive && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-4">
+        <div className="bg-green-400/10 border border-green-400/30 p-4 mb-4">
           <div className="flex items-start gap-3">
-            <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle className="w-6 h-6 text-green-300 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-green-800">Membership Active</p>
-              <p className="text-sm text-green-700 mt-1">
+              <p className="font-semibold text-green-200">Membership Active</p>
+              <p className="text-sm text-green-300/80 mt-1">
                 Your membership is currently active. You will be notified before it expires.
               </p>
             </div>
@@ -92,12 +92,12 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
       )}
 
       {isPendingCancellation && (
-        <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4">
+        <div className="bg-zinc-50 border border-zinc-200 p-4 mb-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-6 h-6 text-zinc-700 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-yellow-800">Pending Cancellation</p>
-              <p className="text-sm text-yellow-700 mt-1">
+              <p className="font-semibold text-zinc-800">Pending Cancellation</p>
+              <p className="text-sm text-zinc-600 mt-1">
                 Your membership is still active but will not auto-renew. You can resume auto-renew anytime in Settings.
               </p>
             </div>
@@ -107,36 +107,34 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
 
       {/* PAYMENT CARD (Only show if not active or pending-cancellation) */}
       {!isMembershipValid && (
-        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-6 relative overflow-hidden">
+        <div className="bg-zinc-50 border border-zinc-200 p-6 relative overflow-hidden">
           {/* Decorative element */}
-          <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-indigo-200 rounded-full opacity-20"></div>
-          
           <div className="relative">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <h3 className="text-xl font-bold text-gray-900">Annual Membership</h3>
+              <h3 className="text-xl font-bold text-zinc-950">Annual Membership</h3>
             </div>
 
             <p className="text-center mb-6">
-              <span className="text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+              <span className="text-5xl font-extrabold text-zinc-950">
                 $100
               </span>
-              <span className="text-gray-500 text-sm ml-2">/ year</span>
+              <span className="text-zinc-500 text-sm ml-2">/ year</span>
             </p>
 
             <button
               onClick={() => handleCheckout(recurringPriceId)}
               disabled={loading === recurringPriceId}
               className="
-                w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-lg font-bold py-3 rounded-xl 
-                hover:from-indigo-700 hover:to-blue-700 shadow-md hover:shadow-lg 
-                transition-all duration-200 ease-out transform hover:-translate-y-0.5
-                focus:outline-none focus:ring-4 focus:ring-indigo-300
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                w-full bg-white text-black text-lg font-bold py-3 
+                hover:bg-zinc-200 
+                transition-all duration-200 ease-out
+                focus:outline-none focus:ring-2 focus:ring-white/40
+                disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
               {loading === recurringPriceId ? (
                 <span className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-black border-t-transparent animate-spin"></div>
                   Processing...
                 </span>
               ) : (
@@ -147,7 +145,7 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
         </div>
       )}
 
-      <p className="text-center text-gray-500 text-sm mt-4">
+      <p className="text-center text-zinc-500 text-sm mt-4">
         Your support helps fund events, outreach, and alumni initiatives.
       </p>
     </div>

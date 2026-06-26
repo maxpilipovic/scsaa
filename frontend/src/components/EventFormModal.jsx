@@ -44,74 +44,74 @@ const EventFormModal = ({ isOpen, onClose, onSave, event }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-blue-50 rounded-lg shadow-xl p-8 w-full max-w-lg border border-black">
-        <h2 className="text-2xl font-bold mb-6">{event ? 'Edit Event' : 'Create New Event'}</h2>
+    <div className="fixed inset-0 bg-zinc-950/20 z-50 flex justify-center items-center p-4">
+      <div className="panel-strong p-8 w-full max-w-lg">
+        <h2 className="text-2xl font-bold text-zinc-950 mb-6">{event ? 'Edit Event' : 'Create New Event'}</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+              <label htmlFor="name" className="block text-sm font-medium text-zinc-700">Name</label>
               <input
                 type="text"
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                className="input-dark mt-1"
                 required
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+              <label htmlFor="description" className="block text-sm font-medium text-zinc-700">Description</label>
               <textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 rows="4"
-                className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                className="input-dark mt-1"
               ></textarea>
             </div>
             <div>
-              <label htmlFor="start_time" className="block text-sm font-medium text-gray-700">Start Time</label>
+              <label htmlFor="start_time" className="block text-sm font-medium text-zinc-700">Start Time</label>
               <input
                 type="datetime-local"
                 id="start_time"
                 name="start_time"
                 value={formData.start_time}
                 onChange={handleInputChange}
-                className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                className="input-dark mt-1"
                 required
               />
             </div>
             <div>
-              <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">End Date</label>
+              <label htmlFor="end_date" className="block text-sm font-medium text-zinc-700">End Date</label>
               <input
                 type="datetime-local"
                 id="end_date"
                 name="end_date"
                 value={formData.end_date}
                 onChange={handleInputChange}
-                className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                className="input-dark mt-1"
               />
             </div>
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
+              <label htmlFor="location" className="block text-sm font-medium text-zinc-700">Location</label>
               <input
                 type="text"
                 id="location"
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+                className="input-dark mt-1"
               />
             </div>
           </div>
           <div className="mt-8 flex justify-end gap-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300">
+            <button type="button" onClick={onClose} className="btn-secondary px-4 py-2">
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            <button type="submit" className="btn-primary px-4 py-2">
               Save Event
             </button>
           </div>

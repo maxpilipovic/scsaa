@@ -149,96 +149,96 @@ function UserDetailsPage() {
   ];
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="page-shell p-4 sm:p-6 lg:p-8">
       <div className="mb-6">
         <button
           onClick={() => navigate('/dashboard/admin')}
-          className="text-indigo-600 hover:text-indigo-800 font-medium"
+          className="text-zinc-600 hover:text-zinc-950 font-medium"
         >
-          &larr; Back to Admin Dashboard
+          Back to Admin Dashboard
         </button>
       </div>
-      <h1 className="text-3xl font-bold mb-2">{formData.first_name} {formData.last_name}</h1>
-      <p className="text-gray-600 mb-8">User ID: {user.id}</p>
+      <h1 className="text-3xl font-black text-zinc-950 mb-2 tracking-tight">{formData.first_name} {formData.last_name}</h1>
+      <p className="text-zinc-500 mb-8">User ID: {user.id}</p>
 
       <div className="space-y-8">
         <SectionCard title="User Information">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {editableDetails.map(detail => (
               <div key={detail.name}>
-                <h3 className="font-medium text-gray-700">{detail.label}</h3>
+                <h3 className="font-medium text-zinc-700">{detail.label}</h3>
                 {isEditing ? (
                   <input
                     type={detail.type}
                     name={detail.name}
                     value={formData[detail.name] || ''}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md mt-1"
+                    className="input-dark mt-1"
                   />
                 ) : (
-                  <p className="text-gray-600">{user[detail.name] || 'N/A'}</p>
+                  <p className="text-zinc-600">{user[detail.name] || 'N/A'}</p>
                 )}
               </div>
             ))}
              {/* Non-editable details */}
              <div>
-                <h3 className="font-medium text-gray-700">Joined</h3>
-                <p className="text-gray-600">{new Date(user.created_at).toLocaleString()}</p>
+                <h3 className="font-medium text-zinc-700">Joined</h3>
+                <p className="text-zinc-600">{new Date(user.created_at).toLocaleString()}</p>
               </div>
           </div>
           <div className="mt-6 flex justify-end gap-4">
             {isEditing ? (
               <>
-                <button onClick={handleCancel} disabled={isSaving} className="px-4 py-2 rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Cancel</button>
-                <button onClick={handleSave} disabled={isSaving} className="px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                <button onClick={handleCancel} disabled={isSaving} className="btn-secondary px-4 py-2">Cancel</button>
+                <button onClick={handleSave} disabled={isSaving} className="btn-primary px-4 py-2">
                   {isSaving ? 'Saving...' : 'Save'}
                 </button>
               </>
             ) : (
-              <button onClick={() => setIsEditing(true)} className="px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Edit</button>
+              <button onClick={() => setIsEditing(true)} className="btn-primary px-4 py-2">Edit</button>
             )}
           </div>
         </SectionCard>
 
         <SectionCard title="Membership & Payments">
           <div className="mb-6">
-            <h3 className="font-bold text-gray-700 mb-2">Membership Status</h3>
+            <h3 className="font-bold text-zinc-700 mb-2">Membership Status</h3>
             {userMembershipStatus ? (
               <div>
-                <p className="text-gray-600">Status: {(userMembershipStatus.status).toUpperCase()}</p>
-                <p className="text-gray-600">Paid: {new Date(userMembershipStatus.paid_at).toLocaleDateString()}</p>
-                <p className="text-gray-600">Expires: {new Date(userMembershipStatus.expires_at).toLocaleDateString()}</p>
-                <p className="text-gray-600">Stripe Customer ID: {userMembershipStatus.stripe_customer_id}</p>
+                <p className="text-zinc-600">Status: {(userMembershipStatus.status).toUpperCase()}</p>
+                <p className="text-zinc-600">Paid: {new Date(userMembershipStatus.paid_at).toLocaleDateString()}</p>
+                <p className="text-zinc-600">Expires: {new Date(userMembershipStatus.expires_at).toLocaleDateString()}</p>
+                <p className="text-zinc-600">Stripe Customer ID: {userMembershipStatus.stripe_customer_id}</p>
               </div>
             ) : (
-              <p className="text-gray-600">No membership status found.</p>
+              <p className="text-zinc-500">No membership status found.</p>
             )}
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-700 mb-2">Payment History</h3>
+            <h3 className="font-bold text-zinc-700 mb-2">Payment History</h3>
               {userPaymentInfo && userPaymentInfo.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full table-auto border-collapse border border-gray-300 rounded-xl shadow-sm">
-                    <thead className="bg-gray-100">
+                  <table className="min-w-full table-auto border-collapse border border-zinc-200">
+                    <thead className="bg-zinc-50">
                       <tr>
-                        <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">Payment ID</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">Dues Amount</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">Stripe Payment ID</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">Status</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left text-gray-700">Created At</th>
+                        <th className="border border-zinc-200 px-4 py-2 text-left text-zinc-700">Payment ID</th>
+                        <th className="border border-zinc-200 px-4 py-2 text-left text-zinc-700">Dues Amount</th>
+                        <th className="border border-zinc-200 px-4 py-2 text-left text-zinc-700">Stripe Payment ID</th>
+                        <th className="border border-zinc-200 px-4 py-2 text-left text-zinc-700">Status</th>
+                        <th className="border border-zinc-200 px-4 py-2 text-left text-zinc-700">Created At</th>
                       </tr>
                     </thead>
                     <tbody>
                       {userPaymentInfo.map((payment) => (
-                        <tr key={payment.payment_id} className="odd:bg-white even:bg-gray-50">
-                          <td className="border border-gray-300 px-4 py-2">{payment.payment_id}</td>
-                          <td className="border border-gray-300 px-4 py-2">${payment.dues_amount}</td>
-                          <td className="border border-gray-300 px-4 py_2">{payment.stripe_payment_id}</td>
-                          <td className="border border-gray-300 px-4 py-2 capitalize">
+                        <tr key={payment.payment_id} className="odd:bg-zinc-50 even:bg-white text-zinc-700">
+                          <td className="border border-zinc-200 px-4 py-2">{payment.payment_id}</td>
+                          <td className="border border-zinc-200 px-4 py-2">${payment.dues_amount}</td>
+                          <td className="border border-zinc-200 px-4 py-2">{payment.stripe_payment_id}</td>
+                          <td className="border border-zinc-200 px-4 py-2 capitalize">
                             {payment.status}
                           </td>
-                          <td className="border border-gray-300 px-4 py-2">
+                          <td className="border border-zinc-200 px-4 py-2">
                             {new Date(payment.created_at).toLocaleString()}
                           </td>
                         </tr>
@@ -247,7 +247,7 @@ function UserDetailsPage() {
                   </table>
                 </div>
               ) : (
-                <p className="text-gray-600">No payment history found.</p>
+                <p className="text-zinc-500">No payment history found.</p>
               )}
           </div>
         </SectionCard>

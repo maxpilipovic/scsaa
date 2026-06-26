@@ -79,7 +79,6 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters long');
       return;
@@ -106,9 +105,8 @@ const ResetPassword = () => {
         position: 'top-right',
       });
 
-      // Sign out and redirect to login
       await supabase.auth.signOut();
-      
+
       setTimeout(() => {
         navigate('/login');
       }, 1500);
@@ -123,12 +121,12 @@ const ResetPassword = () => {
 
   if (checkingLink) {
     return (
-      <div className="min-h-screen bg-purple-50 flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-xl mb-4">
-            <span className="text-white font-bold text-3xl">ΣΠ</span>
+      <div className="page-shell flex items-center justify-center px-4">
+        <div className="text-center panel-strong p-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white mb-4">
+            <span className="text-zinc-950 font-black text-xl tracking-tight">SP</span>
           </div>
-          <p className="text-purple-700">Verifying reset link...</p>
+          <p className="text-zinc-600">Verifying reset link...</p>
         </div>
       </div>
     );
@@ -139,28 +137,25 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="page-shell flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-md w-full">
-        {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-600 rounded-xl mb-4">
-            <span className="text-white font-bold text-3xl">ΣΠ</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white mb-4">
+            <span className="text-zinc-950 font-black text-xl tracking-tight">SP</span>
           </div>
-          <h2 className="text-3xl font-bold text-purple-900 mb-2">Reset Password</h2>
-          <p className="text-purple-700">Enter your new password</p>
+          <h2 className="text-3xl font-black text-zinc-950 mb-2 tracking-tight">Reset Password</h2>
+          <p className="text-zinc-600">Enter your new password</p>
         </div>
 
-        {/* Reset Password Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-purple-100">
+        <div className="panel-strong p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* New Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-purple-900 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-zinc-800 mb-2">
                 New Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-purple-400" />
+                  <Lock className="h-5 w-5 text-zinc-500" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -168,7 +163,7 @@ const ResetPassword = () => {
                   name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-3 border-2 border-purple-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  className="input-dark pl-10 pr-10"
                   placeholder="Enter new password"
                   required
                   disabled={loading}
@@ -180,23 +175,22 @@ const ResetPassword = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-purple-400 hover:text-purple-600" />
+                    <EyeOff className="h-5 w-5 text-zinc-500 hover:text-zinc-950" />
                   ) : (
-                    <Eye className="h-5 w-5 text-purple-400 hover:text-purple-600" />
+                    <Eye className="h-5 w-5 text-zinc-500 hover:text-zinc-950" />
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-purple-600">Must be at least 8 characters</p>
+              <p className="mt-1 text-xs text-zinc-500">Must be at least 8 characters</p>
             </div>
 
-            {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-purple-900 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-zinc-800 mb-2">
                 Confirm New Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-purple-400" />
+                  <Lock className="h-5 w-5 text-zinc-500" />
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
@@ -204,7 +198,7 @@ const ResetPassword = () => {
                   name="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-3 border-2 border-purple-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  className="input-dark pl-10 pr-10"
                   placeholder="Confirm new password"
                   required
                   disabled={loading}
@@ -216,19 +210,18 @@ const ResetPassword = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-purple-400 hover:text-purple-600" />
+                    <EyeOff className="h-5 w-5 text-zinc-500 hover:text-zinc-950" />
                   ) : (
-                    <Eye className="h-5 w-5 text-purple-400 hover:text-purple-600" />
+                    <Eye className="h-5 w-5 text-zinc-500 hover:text-zinc-950" />
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-semibold rounded-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full text-base"
             >
               {loading ? 'Resetting Password...' : 'Reset Password'}
             </button>
@@ -237,7 +230,7 @@ const ResetPassword = () => {
           <div className="mt-6 text-center">
             <button
               onClick={() => navigate('/login')}
-              className="inline-flex items-center text-sm text-purple-600 hover:text-purple-700 font-medium transition"
+              className="inline-flex items-center text-sm text-zinc-700 hover:text-zinc-950 font-medium transition"
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Login

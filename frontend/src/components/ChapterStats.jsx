@@ -2,9 +2,9 @@ import React from 'react';
 import { useEffect } from 'react';
 
 const ChapterStats = () => {
-
   const [totalAlumni, setTotalAlumni] = React.useState(0);
   const [activeMembers, setActiveMembers] = React.useState(0);
+
   useEffect(() => {
     const fetchTotalMembers = async () => {
       try {
@@ -12,16 +12,14 @@ const ChapterStats = () => {
         const data = await response.json();
 
         console.log("Total members:", data);
-        //Update
         setTotalAlumni(data.totalMembers);
-
       } catch (error) {
         console.error('Error fetching total members:', error);
       }
     };
 
-  fetchTotalMembers();
-}, []);
+    fetchTotalMembers();
+  }, []);
 
   const fetchActiveMembers = async () => {
     try {
@@ -29,9 +27,7 @@ const ChapterStats = () => {
       const data = await response.json();
 
       console.log("Active members:", data);
-      //Update
       setActiveMembers(data.activeMembers);
-
     } catch (error) {
       console.error('Error fetching active members:', error);
     }
@@ -47,13 +43,14 @@ const ChapterStats = () => {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg shadow p-6 text-white">
-      <h3 className="text-lg font-semibold mb-4">SCSAA Stats</h3>
+    <div className="panel p-6 text-zinc-950">
+      <p className="section-eyebrow mb-2">Chapter Pulse</p>
+      <h3 className="text-lg font-bold mb-4">SCSAA Stats</h3>
       <div className="space-y-3">
         {actualStats.map((stat, idx) => (
-          <div key={idx} className="flex justify-between items-center">
-            <span className="text-indigo-100">{stat.label}</span>
-            <span className="text-2xl font-bold">{stat.value}</span>
+          <div key={idx} className="flex justify-between items-center border-b border-zinc-200 last:border-b-0 pb-3 last:pb-0">
+            <span className="text-zinc-600">{stat.label}</span>
+            <span className="text-2xl font-black text-zinc-950">{stat.value}</span>
           </div>
         ))}
       </div>

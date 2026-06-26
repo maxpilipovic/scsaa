@@ -46,7 +46,7 @@ const ManageSubscriptionButton = ({ userId }) => {
       <button
         onClick={handleManageSubscription}
         disabled={loading}
-        className="flex items-center gap-2 px-6 py-3 font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        className="btn-primary px-6 py-3"
       >
         {loading ? (
           <>
@@ -61,7 +61,7 @@ const ManageSubscriptionButton = ({ userId }) => {
         )}
       </button>
       {error && (
-        <div className="mt-3 p-3 bg-red-50 border border-red-300 text-red-700 rounded-lg text-sm">
+        <div className="mt-3 p-3 bg-red-400/10 border border-red-400/30 text-red-200 text-sm">
           {error}
         </div>
       )}

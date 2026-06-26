@@ -133,13 +133,13 @@ const AdminEventsPage = () => {
   if (!isAdmin) return <ErrorPage message="Admin Access" />;
 
   return (
-    <>
+    <div className="page-shell p-4 sm:p-6 lg:p-8">
       <SectionCard title="Events Management">
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-gray-600">Create, edit, and delete platform events.</p>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+          <p className="text-zinc-600">Create, edit, and delete platform events.</p>
           <button
             onClick={() => handleOpenModal()}
-            className="flex items-center gap-2 px-4 py-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            className="btn-primary px-4 py-2"
           >
             <Plus size={18} />
             Create New Event
@@ -147,33 +147,33 @@ const AdminEventsPage = () => {
         </div>
         {loading ? (
           <div className="flex justify-center items-center py-8">
-            <Loader className="animate-spin" size={32} />
+            <Loader className="animate-spin text-zinc-950" size={32} />
           </div>
         ) : error ? (
-          <p className="text-center text-red-500 py-8">{error}</p>
+          <p className="text-center text-red-300 py-8">{error}</p>
         ) : (
           <div className="space-y-4">
             {events.length > 0 ? (
               events.map(event => (
-                <div key={event.event_id} className="bg-white p-4 rounded-lg shadow-sm border flex justify-between items-center">
+                <div key={event.event_id} className="bg-zinc-50 p-4 border border-zinc-200 flex justify-between items-center">
                   <div>
-                    <h3 className="font-bold text-lg text-gray-800">{event.name}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="font-bold text-lg text-zinc-950">{event.name}</h3>
+                    <p className="text-sm text-zinc-600">
                       {new Date(event.start_time).toLocaleString()} | {event.location}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <button onClick={() => handleOpenModal(event)} className="text-gray-500 hover:text-indigo-600">
+                    <button onClick={() => handleOpenModal(event)} className="text-zinc-500 hover:text-zinc-950">
                       <Edit size={20} />
                     </button>
-                    <button onClick={() => handleDeleteEvent(event.event_id)} className="text-gray-500 hover:text-red-600">
+                    <button onClick={() => handleDeleteEvent(event.event_id)} className="text-zinc-500 hover:text-red-300">
                       <Trash2 size={20} />
                     </button>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-8">No events found. Click "Create New Event" to add one.</p>
+              <p className="text-center text-zinc-500 py-8">No events found. Click "Create New Event" to add one.</p>
             )}
           </div>
         )}
@@ -185,7 +185,7 @@ const AdminEventsPage = () => {
         onSave={handleSaveEvent}
         event={currentEvent}
       />
-    </>
+    </div>
   );
 };
 
