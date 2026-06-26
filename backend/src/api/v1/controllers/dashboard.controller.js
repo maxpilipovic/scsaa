@@ -58,7 +58,45 @@ export const getEvents = async (req, res) => {
       .select('*')
       .order('start_time', { ascending: true });
     if (error) throw error;
-    res.json(data);
+
+    const eventIds = data.map((event) => event.event_id);
+
+    if (eventIds.length === 0) {
+      return res.json([]);
+    }
+
+    const { data: rsvps, error: rsvpError } = await supabase
+      .from('event_rsvp')
+      .select('event_id, user_id, status')
+      .in('event_id', eventIds);
+
+    if (rsvpError) throw rsvpError;
+
+    const rsvpsByEventId = rsvps.reduce((acc, rsvp) => {
+      const current = acc.get(rsvp.event_id) || {
+        counts: { going: 0, maybe: 0, not_going: 0 },
+        my_rsvp: null,
+      };
+
+      current.counts[rsvp.status] = (current.counts[rsvp.status] || 0) + 1;
+
+      if (rsvp.user_id === req.user.id) {
+        current.my_rsvp = rsvp.status;
+      }
+
+      acc.set(rsvp.event_id, current);
+      return acc;
+    }, new Map());
+
+    res.json(data.map((event) => {
+      const rsvpData = rsvpsByEventId.get(event.event_id);
+
+      return {
+        ...event,
+        rsvp_counts: rsvpData?.counts || { going: 0, maybe: 0, not_going: 0 },
+        my_rsvp: rsvpData?.my_rsvp || null,
+      };
+    }));
   } catch (error) {
     res.status(500).json({ error: "An error occurred" });
   }

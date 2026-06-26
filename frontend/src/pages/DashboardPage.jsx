@@ -10,10 +10,10 @@ import SideBar from '../Sidebar/SideBar.jsx';
 import Header from '../components/Header.jsx';
 import OverviewPage from './OverviewPage.jsx';
 import EventsPage from './EventsPage.jsx';
-import ResourcesPage from '../components/ResosurcesPage.jsx';
 import SuccessMessage from '../components/SuccessMessage.jsx';
 import PaymentsPage from './PaymentsPage.jsx';
 import SettingsPage from './SettingsPage.jsx';
+import ActivityFeedPage from './ActivityFeedPage.jsx';
 import { Menu, X } from 'lucide-react'; //Import Menu and X icons
 
 function DashboardPage() {
@@ -31,6 +31,7 @@ function DashboardPage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [highlightedActivityItem, setHighlightedActivityItem] = useState(null);
 
   const handleProfileUpdated = (updatedProfile) => {
     setPersonData((currentData) => {
@@ -46,6 +47,26 @@ function DashboardPage() {
         },
       };
     });
+  };
+
+  const handleEventRsvpUpdated = (eventId, rsvpData) => {
+    setUpcomingEvents((currentEvents) => currentEvents.map((event) => (
+      event.event_id === eventId
+        ? {
+            ...event,
+            my_rsvp: rsvpData.my_rsvp,
+            rsvp_counts: rsvpData.rsvp_counts,
+          }
+        : event
+    )));
+  };
+
+  const handleAnnouncementReadMore = (announcement) => {
+    setHighlightedActivityItem({
+      type: 'announcement',
+      id: announcement.announcements_id,
+    });
+    setActiveTab('activity');
   };
 
   //Effect to handle incoming navigation state for DEFAULT TAB
@@ -203,12 +224,25 @@ function DashboardPage() {
                 upcomingEvents={upcomingEvents}
                 announcements={announcements}
                 setActiveTab={setActiveTab}
+                onAnnouncementReadMore={handleAnnouncementReadMore}
                 />
             )}
           
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} membershipData={membershipData} />}
-          {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
-          {activeTab === "resources" && <ResourcesPage />}
+          {activeTab === "activity" && (
+            <ActivityFeedPage
+              profile={personData?.authUser}
+              upcomingEvents={upcomingEvents}
+              onEventRsvpUpdated={handleEventRsvpUpdated}
+              highlightedItem={highlightedActivityItem}
+            />
+          )}
+          {activeTab === "events" && (
+            <EventsPage
+              upcomingEvents={upcomingEvents}
+              onEventRsvpUpdated={handleEventRsvpUpdated}
+            />
+          )}
           {activeTab === "settings" && (
             <SettingsPage
               user={user}

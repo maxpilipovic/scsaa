@@ -1,12 +1,15 @@
 import React from 'react';
 import AnnouncementCard from './AnnouncementCard.jsx';
-import { Home, CreditCard, Users, FileText, Calendar, Settings, LogOut, Bell, Search, Download } from 'lucide-react';
 
-const AnnouncementsList = ({ announcements }) => {
+const AnnouncementsList = ({ announcements, onReadMore }) => {
   return (
     <div className="space-y-4">
       {announcements.map((announcement, idx) => (
-        <AnnouncementCard key={idx} announcement={announcement} />
+        <AnnouncementCard
+          key={announcement.announcements_id || idx}
+          announcement={announcement}
+          onReadMore={onReadMore}
+        />
       ))}
     </div>
   );

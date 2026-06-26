@@ -8,7 +8,14 @@ import ChapterStats from '../components/ChapterStats.jsx';
 import { CreditCard, Users, Calendar} from 'lucide-react';
 
 
-const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announcements, setActiveTab }) => {
+const OverviewPage = ({
+  membershipData,
+  paymentHistory,
+  upcomingEvents,
+  announcements,
+  setActiveTab,
+  onAnnouncementReadMore,
+}) => {
 
   //onsole.log(membershipData);
   //console.log(paymentHistory);
@@ -98,7 +105,10 @@ const OverviewPage = ({ membershipData, paymentHistory, upcomingEvents, announce
           </SectionCard>
 
           <SectionCard title="Latest Announcements">
-            <AnnouncementsList announcements={announcements || []} />
+            <AnnouncementsList
+              announcements={announcements || []}
+              onReadMore={onAnnouncementReadMore}
+            />
           </SectionCard>
         </div>
 
