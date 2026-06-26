@@ -18,7 +18,7 @@ export const checkAccess = async (req, res) => {
   try {
     const { data: userProfile, error: profileError } = await supabase
       .from('users')
-      .select('id, first_name, last_name, pledge_class, is_admin, phone_number, address, dob')
+      .select('id, first_name, last_name, pledge_class, is_admin, phone_number, address, dob, profile_picture_url, profile_picture_path')
       .eq('email', user.email)
       .single();
 

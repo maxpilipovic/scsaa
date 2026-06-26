@@ -32,6 +32,22 @@ function DashboardPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const handleProfileUpdated = (updatedProfile) => {
+    setPersonData((currentData) => {
+      if (!currentData?.authUser) {
+        return currentData;
+      }
+
+      return {
+        ...currentData,
+        authUser: {
+          ...currentData.authUser,
+          ...updatedProfile,
+        },
+      };
+    });
+  };
+
   //Effect to handle incoming navigation state for DEFAULT TAB
   useEffect(() => {
     if (location.state?.defaultTab) {
@@ -193,7 +209,14 @@ function DashboardPage() {
           {activeTab === "payments" && <PaymentsPage paymentHistory={paymentHistory} user={user} membershipData={membershipData} />}
           {activeTab === "events" && <EventsPage upcomingEvents={upcomingEvents} />}
           {activeTab === "resources" && <ResourcesPage />}
-          {activeTab === "settings" && <SettingsPage user={user} membershipData={membershipData} />}
+          {activeTab === "settings" && (
+            <SettingsPage
+              user={user}
+              profile={personData?.authUser}
+              membershipData={membershipData}
+              onProfileUpdated={handleProfileUpdated}
+            />
+          )}
         </div>
       </div>
     </div>

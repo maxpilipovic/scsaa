@@ -17,10 +17,18 @@ const Header = ({ membershipData, onOpenSettings }) => {
           <button
             type="button"
             onClick={onOpenSettings}
-            className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold transition hover:bg-indigo-700 hover:ring-2 hover:ring-indigo-400 hover:ring-offset-2 focus:outline-none"
+            className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-semibold transition hover:bg-indigo-700 hover:ring-2 hover:ring-indigo-400 hover:ring-offset-2 focus:outline-none overflow-hidden"
             aria-label="Open settings"
           >
-            {membershipData.first_name.split(' ').map(n => n[0]).join('')}
+            {membershipData.profile_picture_url ? (
+              <img
+                src={membershipData.profile_picture_url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              membershipData.first_name.split(' ').map(n => n[0]).join('')
+            )}
           </button>
         </div>
       </div>
