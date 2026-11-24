@@ -16,6 +16,69 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const toIso = (unixSeconds) =>
   unixSeconds ? new Date(unixSeconds * 1000).toISOString() : null;
 
+// Throw on database errors so Stripe retries the event
+const assertOk = ({ error }, context) => {
+  if (error) throw new Error(`${context}: ${error.message}`);
+};
+
+const isDonationSubscription = (subscription) =>
+  subscription?.metadata?.donation_type === 'monthly';
+
+// Newer Stripe API versions moved this field under invoice.parent
+const getInvoiceSubscriptionId = (invoice) =>
+  invoice.parent?.subscription_details?.subscription ?? invoice.subscription ?? null;
+
+// Returns false when this Stripe payment was already recorded
+const recordPayment = async (userId, amount, stripePaymentId) => {
+  const existing = await supabase
+    .from('payments')
+    .select('stripe_payment_id')
+    .eq('stripe_payment_id', stripePaymentId)
+    .limit(1)
+    .maybeSingle();
+  assertOk(existing, 'Checking for existing payment');
+  if (existing.data) return false;
+
+  const inserted = await supabase.from('payments').insert({
+    user_id: userId,
+    dues_amount: amount,
+    processing_fee: 0,
+    stripe_payment_id: stripePaymentId,
+    status: 'succeeded',
+  });
+  assertOk(inserted, 'Recording payment');
+  return true;
+};
+
+// Donors need a saved Stripe customer for the billing portal, but a donation
+// must never change an existing membership.
+const saveDonorCustomer = async (userId, customerId) => {
+  const existing = await supabase
+    .from('memberships')
+    .select('user_id, stripe_customer_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  assertOk(existing, 'Looking up donor record');
+
+  if (!existing.data) {
+    const inserted = await supabase.from('memberships').insert({
+      user_id: userId,
+      stripe_customer_id: customerId,
+      year: new Date().getFullYear(),
+      status: 'donor',
+      paid_at: new Date().toISOString(),
+      expires_at: null,
+    });
+    assertOk(inserted, 'Creating donor record');
+  } else if (!existing.data.stripe_customer_id) {
+    const updated = await supabase
+      .from('memberships')
+      .update({ stripe_customer_id: customerId })
+      .eq('user_id', userId);
+    assertOk(updated, 'Saving donor customer');
+  }
+};
+
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -28,6 +91,17 @@ export const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  try {
+    await processStripeEvent(event);
+  } catch (error) {
+    console.error(`Failed to process ${event.type} (${event.id}):`, error);
+    return res.status(500).send('Webhook processing failed');
+  }
+
+  res.send();
+};
+
+const processStripeEvent = async (event) => {
   switch (event.type) {
     // ---------------------------------------------------------
     // 1) CHECKOUT SESSION COMPLETED (Subscriptions & One-time Payments)
@@ -74,32 +148,12 @@ export const handleStripeWebhook = async (req, res) => {
             // Record the donation subscription in payments table
             const amount = session.amount_total / 100;
             
-            const { data, error } = await supabase.from('payments').insert({
-              user_id: userId,
-              dues_amount: amount,
-              processing_fee: 0,
-              stripe_payment_id: subscriptionId,
-              status: 'succeeded',
-            });
+            const isNewPayment = await recordPayment(userId, amount, subscriptionId);
 
-            if (error) {
-              console.error('Error inserting monthly donation to payments table:', error);
-            } else {
-              console.log('Monthly donation payment inserted:', data);
-            }
+            // Keep the customer for the billing portal without touching membership status
+            await saveDonorCustomer(userId, customerId);
 
-            // Store the donation subscription info for management
-            await supabase.from('memberships').upsert(
-              {
-                user_id: userId,
-                stripe_customer_id: customerId,
-                year: new Date().getFullYear(),
-                status: 'active',
-                paid_at: new Date().toISOString(),
-                expires_at: expiresAt,
-              },
-              { onConflict: 'user_id' }
-            );
+            if (!isNewPayment) break;
 
             // Log the donation
             await logPaymentAction(userId, 'DONATION_SUBSCRIPTION_CREATED', {
@@ -109,10 +163,31 @@ export const handleStripeWebhook = async (req, res) => {
               type: 'monthly_recurring',
             });
 
+            const { data: user } = await supabase
+              .from('users')
+              .select('email, first_name, last_name')
+              .eq('id', userId)
+              .single();
+
+            if (user && user.email) {
+              const emailHtml = paymentConfirmationTemplate(
+                `${user.first_name} ${user.last_name}`,
+                amount,
+                subscriptionId,
+                { isDonation: true }
+              );
+
+              await sendEmail(
+                user.email,
+                'Thank You for Your Monthly Donation - SCSAA',
+                emailHtml
+              );
+            }
+
             console.log(`Monthly donation subscription created for ${userId}`);
           } else {
             // Regular membership subscription
-            await supabase.from('memberships').upsert(
+            const saved = await supabase.from('memberships').upsert(
               {
                 user_id: userId,
                 stripe_customer_id: customerId,
@@ -123,6 +198,7 @@ export const handleStripeWebhook = async (req, res) => {
               },
               { onConflict: 'user_id' }
             );
+            assertOk(saved, 'Saving membership');
 
             // Get user email for confirmation
             const { data: user } = await supabase
@@ -176,19 +252,8 @@ export const handleStripeWebhook = async (req, res) => {
             });
 
             // Record the one-time donation in payments table
-            const { data, error } = await supabase.from('payments').insert({
-              user_id: userId,
-              dues_amount: amount,
-              processing_fee: 0,
-              stripe_payment_id: paymentIntentId,
-              status: 'succeeded',
-            });
-
-            if (error) {
-              console.error('Error inserting one-time donation to payments table:', error);
-            } else {
-              console.log('One-time donation payment inserted successfully:', data);
-            }
+            const isNewPayment = await recordPayment(userId, amount, paymentIntentId);
+            if (!isNewPayment) break;
 
             // Log the donation
             await logPaymentAction(userId, 'DONATION_SUCCEEDED', {
@@ -235,6 +300,7 @@ export const handleStripeWebhook = async (req, res) => {
             session_id: session.id,
           });
         }
+        throw error;
       }
 
       break;
@@ -259,13 +325,11 @@ export const handleStripeWebhook = async (req, res) => {
         // Check if this is a donation subscription by looking at metadata
         let isDonation = false;
         let subscription = null;
-        // Newer Stripe API versions moved this field under invoice.parent
-        const subscriptionId =
-          invoice.parent?.subscription_details?.subscription ?? invoice.subscription;
+        const subscriptionId = getInvoiceSubscriptionId(invoice);
         if (subscriptionId) {
           subscription = await stripe.subscriptions.retrieve(subscriptionId);
           // Check if this subscription has donation metadata
-          isDonation = subscription.metadata?.donation_type === 'monthly';
+          isDonation = isDonationSubscription(subscription);
           resolvedUserId = subscription.metadata?.user_id || null;
         }
 
@@ -283,29 +347,15 @@ export const handleStripeWebhook = async (req, res) => {
         const isFirstInvoice = invoice.billing_reason === 'subscription_create';
         if (isDonation && isFirstInvoice) break;
 
-        // Stripe can deliver the same event more than once
-        const { data: existingPayment } = await supabase
-          .from('payments')
-          .select('stripe_payment_id')
-          .eq('stripe_payment_id', paymentId)
-          .limit(1)
-          .maybeSingle();
-        if (existingPayment) break;
-
         const { data: user } = await supabase
           .from('users')
           .select('email, first_name, last_name')
           .eq('id', resolvedUserId)
           .single();
 
-        // Record payment in payments table
-        await supabase.from('payments').insert({
-          user_id: resolvedUserId,
-          dues_amount: invoice.amount_paid / 100,
-          processing_fee: 0,
-          stripe_payment_id: paymentId,
-          status: 'succeeded',
-        });
+        // Stripe can deliver the same event more than once
+        const isNewPayment = await recordPayment(resolvedUserId, invoice.amount_paid / 100, paymentId);
+        if (!isNewPayment) break;
 
         if (isDonation) {
           // Log the recurring donation payment
@@ -342,8 +392,8 @@ export const handleStripeWebhook = async (req, res) => {
             period: isFirstInvoice ? 'initial' : 'renewal',
           });
 
-          // New members already get a welcome email from checkout
-          if (!isFirstInvoice && user && user.email) {
+          // Only a yearly cycle is a renewal; new members get a welcome email from checkout
+          if (invoice.billing_reason === 'subscription_cycle' && user && user.email) {
             const emailHtml = renewalConfirmationTemplate(
               `${user.first_name} ${user.last_name}`,
               new Date().toISOString(),
@@ -365,6 +415,7 @@ export const handleStripeWebhook = async (req, res) => {
         if (customerId) {
           console.error('Failed to record payment webhook for customer:', customerId);
         }
+        throw error;
       }
 
       break;
@@ -380,6 +431,15 @@ export const handleStripeWebhook = async (req, res) => {
       if (!customerId) break;
 
       console.log(`Payment failed for: ${customerId}`);
+
+      const failedSubscriptionId = getInvoiceSubscriptionId(invoice);
+      if (!failedSubscriptionId) break;
+
+      const failedSubscription = await stripe.subscriptions.retrieve(failedSubscriptionId);
+      if (isDonationSubscription(failedSubscription)) break;
+
+      // Events can arrive late; only act if the subscription is still unpaid
+      if (!['past_due', 'unpaid'].includes(failedSubscription.status)) break;
 
       try {
         const { data: membership } = await supabase
@@ -400,10 +460,14 @@ export const handleStripeWebhook = async (req, res) => {
         console.error('Error logging payment failure:', error);
       }
 
-      await supabase
-        .from('memberships')
-        .update({ status: 'past_due', expires_at: null })
-        .eq('stripe_customer_id', customerId);
+      // Keep expires_at: Stripe is still retrying the card
+      assertOk(
+        await supabase
+          .from('memberships')
+          .update({ status: failedSubscription.status })
+          .eq('stripe_customer_id', customerId),
+        'Marking membership past due'
+      );
 
       break;
     }
@@ -420,6 +484,9 @@ export const handleStripeWebhook = async (req, res) => {
       try {
         // Get the FULL subscription object
         const sub = await stripe.subscriptions.retrieve(incoming.id);
+
+        // Donations never affect membership status or expiry
+        if (isDonationSubscription(sub)) break;
 
         const stripeStatus = sub.status; // 'active', 'canceled', etc.
         const item = sub.items.data[0];
@@ -479,17 +546,21 @@ export const handleStripeWebhook = async (req, res) => {
           });
         }
 
-        await supabase
-          .from('memberships')
-          .update({
-            status: membershipStatus,
-            expires_at: membershipStatus === 'canceled' ? null : expiresAt,
-          })
-          .eq('stripe_customer_id', customerId);
+        assertOk(
+          await supabase
+            .from('memberships')
+            .update({
+              status: membershipStatus,
+              expires_at: membershipStatus === 'canceled' ? null : expiresAt,
+            })
+            .eq('stripe_customer_id', customerId),
+          'Updating membership'
+        );
 
         console.log(`Updated membership for ${customerId}`);
       } catch (err) {
         console.error('Error updating subscription:', err);
+        throw err;
       }
 
       break;
@@ -502,6 +573,9 @@ export const handleStripeWebhook = async (req, res) => {
       const sub = event.data.object;
       const customerId = sub.customer;
       if (!customerId) break;
+
+      // Donations never affect membership status or expiry
+      if (isDonationSubscription(sub)) break;
 
       console.log(`Subscription deleted for: ${customerId}`);
 
@@ -524,10 +598,13 @@ export const handleStripeWebhook = async (req, res) => {
         console.error('Error logging subscription deletion:', error);
       }
 
-      await supabase
-        .from('memberships')
-        .update({ status: 'canceled', expires_at: null })
-        .eq('stripe_customer_id', customerId);
+      assertOk(
+        await supabase
+          .from('memberships')
+          .update({ status: 'canceled', expires_at: null })
+          .eq('stripe_customer_id', customerId),
+        'Canceling membership'
+      );
 
       break;
     }
@@ -535,6 +612,4 @@ export const handleStripeWebhook = async (req, res) => {
     default:
       console.log(`Unhandled event: ${event.type}`);
   }
-
-  res.send();
 };

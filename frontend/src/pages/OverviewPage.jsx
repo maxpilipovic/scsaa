@@ -27,8 +27,9 @@ const OverviewPage = ({
     ? new Date(membershipData.expires_at).toLocaleDateString()
     : 'N/A';
   //const pledgeClass = membershipData.pledge_class || 'N/A';
-  const memberSince = membershipData?.year || 'N/A';
-  const duesStatus = membershipData?.status?.toUpperCase() || 'N/A'; //To uppercase
+  const isDonorOnly = membershipData?.status === 'donor';
+  const memberSince = isDonorOnly ? 'N/A' : membershipData?.year || 'N/A';
+  const duesStatus = isDonorOnly ? 'N/A' : membershipData?.status?.toUpperCase() || 'N/A'; //To uppercase
 
   //Safely handle upcoming events
   const nextEvent = upcomingEvents?.length ? upcomingEvents[0] : null;

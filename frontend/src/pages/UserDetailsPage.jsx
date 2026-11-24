@@ -207,7 +207,7 @@ function UserDetailsPage() {
               <div>
                 <p className="text-gray-600">Status: {(userMembershipStatus.status).toUpperCase()}</p>
                 <p className="text-gray-600">Paid: {new Date(userMembershipStatus.paid_at).toLocaleDateString()}</p>
-                <p className="text-gray-600">Expires: {new Date(userMembershipStatus.expires_at).toLocaleDateString()}</p>
+                <p className="text-gray-600">Expires: {userMembershipStatus.expires_at ? new Date(userMembershipStatus.expires_at).toLocaleDateString() : 'N/A'}</p>
                 <p className="text-gray-600">Stripe Customer ID: {userMembershipStatus.stripe_customer_id}</p>
               </div>
             ) : (

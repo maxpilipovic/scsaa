@@ -53,6 +53,33 @@ export const createCheckoutSession = async (req, res) => {
           user_id: userId,
         },
       };
+
+      const { data: membership, error: membershipError } = await supabase
+        .from('memberships')
+        .select('stripe_customer_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (membershipError) throw membershipError;
+
+      if (membership?.stripe_customer_id) {
+        // Block a second membership, including while Stripe retries a failed card
+        const { data: subscriptions } = await stripe.subscriptions.list({
+          customer: membership.stripe_customer_id,
+          status: 'all',
+          limit: 100,
+        });
+        const hasMembership = subscriptions.some(
+          (subscription) =>
+            subscription.metadata?.donation_type !== 'monthly' &&
+            ['active', 'trialing', 'past_due', 'unpaid'].includes(subscription.status)
+        );
+        if (hasMembership) {
+          return res.status(409).json({
+            error: 'You already have a membership. Manage it or update your card in Settings.',
+          });
+        }
+        sessionConfig.customer = membership.stripe_customer_id;
+      }
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);

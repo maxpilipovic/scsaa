@@ -61,7 +61,8 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
   const status = membershipStatus?.status ?? "none";
   const isActive = status === "active";
   const isPendingCancellation = status === "pending_cancellation";
-  const isMembershipValid = isActive || isPendingCancellation;
+  const hasPaymentIssue = status === "past_due" || status === "unpaid";
+  const isMembershipValid = isActive || isPendingCancellation || hasPaymentIssue;
 
   return (
     <div>
@@ -102,6 +103,20 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
               <p className="font-semibold text-yellow-800">Pending Cancellation</p>
               <p className="text-sm text-yellow-700 mt-1">
                 Your membership is still active but will not auto-renew. You can resume auto-renew anytime in Settings.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasPaymentIssue && (
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-800">Payment Failed</p>
+              <p className="text-sm text-red-700 mt-1">
+                We could not charge your card. Update your payment method in Settings to keep your membership.
               </p>
             </div>
           </div>
