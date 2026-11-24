@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { CheckCircle, AlertTriangle, Sparkles } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 // The Price IDs from your Stripe products
 const recurringPriceId = import.meta.env.VITE_STRIPE_RECURRING_PRICE_ID;
@@ -18,6 +19,8 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
     setLoading(priceId);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+
       //1. Call your backend to create the checkout session
       const response = await fetch(
         `${
@@ -27,8 +30,9 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
           },
-          body: JSON.stringify({ priceId, userId }),
+          body: JSON.stringify({ priceId }),
         }
       );
 
@@ -59,7 +63,6 @@ const PaymentOptions = ({ userId, membershipStatus }) => {
   const isPendingCancellation = status === "pending_cancellation";
   const isMembershipValid = isActive || isPendingCancellation;
 
-  console.log("Membership Status in PaymentOptions:", membershipStatus);
   return (
     <div>
       <p className="text-gray-600 mb-6">

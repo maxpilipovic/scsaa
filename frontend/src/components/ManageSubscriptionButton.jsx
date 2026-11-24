@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ExternalLink, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 const ManageSubscriptionButton = ({ userId }) => {
   const [loading, setLoading] = useState(false);
@@ -14,12 +15,13 @@ const ManageSubscriptionButton = ({ userId }) => {
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/payments/create-portal-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({ userId }),
       });
 
       if (!response.ok) {

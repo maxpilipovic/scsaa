@@ -13,6 +13,7 @@ import {
   getMonthlyRecurringRevenue,
 } from '../controllers/dashboard.controller.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { verifyAdmin } from '../middleware/adminMiddleware.js';
 
 const router = express.Router();
 
@@ -30,8 +31,8 @@ router.get('/events', getEvents);
 router.get('/announcements', getAnnouncements);
 router.get('/getMembershipStatus', getMembershipStatus);
 router.get('/getAdminStatus', getAdminStatus);
-router.get('/recentSignups', getRecentSignups);
-router.get('/totalRevenue', getTotalRevenue);
-router.get('/mrr', getMonthlyRecurringRevenue);
+router.get('/recentSignups', verifyAdmin, getRecentSignups);
+router.get('/totalRevenue', verifyAdmin, getTotalRevenue);
+router.get('/mrr', verifyAdmin, getMonthlyRecurringRevenue);
 
 export default router;

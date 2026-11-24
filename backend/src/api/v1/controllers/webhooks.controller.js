@@ -210,7 +210,8 @@ export const handleStripeWebhook = async (req, res) => {
               const emailHtml = paymentConfirmationTemplate(
                 `${user.first_name} ${user.last_name}`,
                 amount,
-                paymentIntentId
+                paymentIntentId,
+                { isDonation: true }
               );
               
               await sendEmail(
@@ -257,8 +258,12 @@ export const handleStripeWebhook = async (req, res) => {
         let resolvedUserId = null;
         // Check if this is a donation subscription by looking at metadata
         let isDonation = false;
-        if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
+        let subscription = null;
+        // Newer Stripe API versions moved this field under invoice.parent
+        const subscriptionId =
+          invoice.parent?.subscription_details?.subscription ?? invoice.subscription;
+        if (subscriptionId) {
+          subscription = await stripe.subscriptions.retrieve(subscriptionId);
           // Check if this subscription has donation metadata
           isDonation = subscription.metadata?.donation_type === 'monthly';
           resolvedUserId = subscription.metadata?.user_id || null;
@@ -273,6 +278,19 @@ export const handleStripeWebhook = async (req, res) => {
         resolvedUserId = membership?.user_id || resolvedUserId;
 
         if (!resolvedUserId) break;
+
+        // The first donation invoice is already recorded by checkout.session.completed
+        const isFirstInvoice = invoice.billing_reason === 'subscription_create';
+        if (isDonation && isFirstInvoice) break;
+
+        // Stripe can deliver the same event more than once
+        const { data: existingPayment } = await supabase
+          .from('payments')
+          .select('stripe_payment_id')
+          .eq('stripe_payment_id', paymentId)
+          .limit(1)
+          .maybeSingle();
+        if (existingPayment) break;
 
         const { data: user } = await supabase
           .from('users')
@@ -303,7 +321,8 @@ export const handleStripeWebhook = async (req, res) => {
             const emailHtml = paymentConfirmationTemplate(
               `${user.first_name} ${user.last_name}`,
               invoice.amount_paid / 100,
-              paymentId
+              paymentId,
+              { isDonation: true }
             );
             
             await sendEmail(
@@ -320,15 +339,15 @@ export const handleStripeWebhook = async (req, res) => {
             customer_id: customerId,
             payment_id: paymentId,
             amount: invoice.amount_paid / 100,
-            period: 'renewal',
+            period: isFirstInvoice ? 'initial' : 'renewal',
           });
 
-          // Send membership renewal email
-          if (user && user.email) {
+          // New members already get a welcome email from checkout
+          if (!isFirstInvoice && user && user.email) {
             const emailHtml = renewalConfirmationTemplate(
               `${user.first_name} ${user.last_name}`,
               new Date().toISOString(),
-              invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toISOString() : null
+              toIso(subscription?.items?.data?.[0]?.current_period_end)
             );
             
             await sendEmail(

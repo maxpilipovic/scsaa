@@ -5,6 +5,16 @@ dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+const DEFAULT_SITE_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
+
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 /**
  * Send email to a single recipient
  * @param {string} to - Recipient email address
@@ -92,7 +102,7 @@ export const sendBulkEmail = async (recipients, subject, html, text = null) => {
 /**
  * Email template for new announcement
  */
-export const announcementEmailTemplate = (announcementTitle, announcementPreview, siteUrl = 'http://localhost:5173') => {
+export const announcementEmailTemplate = (announcementTitle, announcementPreview, siteUrl = DEFAULT_SITE_URL) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -112,8 +122,8 @@ export const announcementEmailTemplate = (announcementTitle, announcementPreview
           <h2>New Announcement</h2>
         </div>
         <div class="content">
-          <h3>${announcementTitle}</h3>
-          <p>${announcementPreview}</p>
+          <h3>${escapeHtml(announcementTitle)}</h3>
+          <p>${escapeHtml(announcementPreview)}</p>
           <a href="${siteUrl}" class="cta-button">View Full Announcement</a>
           <div class="footer">
             <p>You received this email because you are a member of SCSAA.</p>
@@ -128,7 +138,7 @@ export const announcementEmailTemplate = (announcementTitle, announcementPreview
 /**
  * Email template for new event
  */
-export const eventEmailTemplate = (eventName, eventDescription, eventLocation, eventStartTime, siteUrl = 'http://localhost:5173') => {
+export const eventEmailTemplate = (eventName, eventDescription, eventLocation, eventStartTime, siteUrl = DEFAULT_SITE_URL) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -147,16 +157,16 @@ export const eventEmailTemplate = (eventName, eventDescription, eventLocation, e
     <body>
       <div class="container">
         <div class="header">
-          <h2>New Event: ${eventName}</h2>
+          <h2>New Event: ${escapeHtml(eventName)}</h2>
         </div>
         <div class="content">
           <p>We have a new event coming up!</p>
           <div class="event-details">
-            <p><strong>Event:</strong> ${eventName}</p>
-            <p><strong>Location:</strong> ${eventLocation}</p>
+            <p><strong>Event:</strong> ${escapeHtml(eventName)}</p>
+            <p><strong>Location:</strong> ${escapeHtml(eventLocation)}</p>
             <p><strong>Date & Time:</strong> ${new Date(eventStartTime).toLocaleString()}</p>
           </div>
-          <p>${eventDescription}</p>
+          <p>${escapeHtml(eventDescription)}</p>
           <a href="${siteUrl}" class="cta-button">View Event Details</a>
           <div class="footer">
             <p>You received this email because you are a member of SCSAA.</p>
@@ -171,7 +181,8 @@ export const eventEmailTemplate = (eventName, eventDescription, eventLocation, e
 /**
  * Email template for payment confirmation
  */
-export const paymentConfirmationTemplate = (memberName, amount, transactionId, siteUrl = 'http://localhost:5173') => {
+export const paymentConfirmationTemplate = (memberName, amount, transactionId, { siteUrl = DEFAULT_SITE_URL, isDonation = false } = {}) => {
+  const formattedAmount = Number(amount).toFixed(2);
   return `
     <!DOCTYPE html>
     <html>
@@ -191,17 +202,17 @@ export const paymentConfirmationTemplate = (memberName, amount, transactionId, s
     <body>
       <div class="container">
         <div class="header">
-          <h2>Payment Received</h2>
+          <h2>${isDonation ? 'Thank You for Your Donation' : 'Payment Received'}</h2>
         </div>
         <div class="content">
-          <p>Hi ${memberName},</p>
-          <p>Thank you for your payment! Your membership is now active.</p>
+          <p>Hi ${escapeHtml(memberName)},</p>
+          <p>${isDonation ? 'Thank you for supporting SCSAA! We have received your donation.' : 'Thank you for your payment! Your membership is now active.'}</p>
           <div class="payment-details">
-            <p><strong>Amount:</strong> <span class="amount">$${amount}</span></p>
-            <p><strong>Transaction ID:</strong> ${transactionId}</p>
+            <p><strong>Amount:</strong> <span class="amount">$${formattedAmount}</span></p>
+            <p><strong>Transaction ID:</strong> ${escapeHtml(transactionId)}</p>
             <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
           </div>
-          <p>Your membership provides access to all chapter events, resources, and community.</p>
+          ${isDonation ? '' : '<p>Your membership provides access to all chapter events, resources, and community.</p>'}
           <a href="${siteUrl}/dashboard" class="cta-button">View Your Dashboard</a>
           <div class="footer">
             <p>If you have any questions, please contact our chapter officers.</p>
@@ -216,7 +227,7 @@ export const paymentConfirmationTemplate = (memberName, amount, transactionId, s
 /**
  * Email template for membership renewal
  */
-export const renewalConfirmationTemplate = (memberName, renewalDate, expiresAt, siteUrl = 'http://localhost:5173') => {
+export const renewalConfirmationTemplate = (memberName, renewalDate, expiresAt, siteUrl = DEFAULT_SITE_URL) => {
   return `
     <!DOCTYPE html>
     <html>
@@ -238,11 +249,11 @@ export const renewalConfirmationTemplate = (memberName, renewalDate, expiresAt, 
           <h2>🔄 Membership Renewed</h2>
         </div>
         <div class="content">
-          <p>Hi ${memberName},</p>
+          <p>Hi ${escapeHtml(memberName)},</p>
           <p>Your membership has been successfully renewed!</p>
           <div class="renewal-details">
             <p><strong>Renewed On:</strong> ${new Date(renewalDate).toLocaleString()}</p>
-            <p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleDateString()}</p>
+            ${expiresAt ? `<p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleDateString()}</p>` : ''}
           </div>
           <p>Thank you for your continued support of SCSAA!</p>
           <a href="${siteUrl}/dashboard" class="cta-button">View Your Membership</a>
@@ -275,7 +286,7 @@ export const customEmailTemplate = (subject, body) => {
     <body>
       <div class="container">
         <div class="header">
-          <h2>${subject}</h2>
+          <h2>${escapeHtml(subject)}</h2>
         </div>
         <div class="content">
           ${body}

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import PaymentTable from '../components/PaymentTable';
 import PaymentOptions from '../components/PaymentOptions';
 import { CreditCard, Heart, History } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
   const [customAmount, setCustomAmount] = useState('');
@@ -21,16 +22,17 @@ const PaymentsPage = ({ paymentHistory, user, membershipData }) => {
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/v1/payments/create-donation-session`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token}`,
           },
           body: JSON.stringify({ 
-            amount: amount * 100, // Convert to cents
-            userId: user?.id,
+            amount: Math.round(amount * 100), // Convert to whole cents
             type: donationType 
           }),
         }

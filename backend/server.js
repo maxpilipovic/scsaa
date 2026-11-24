@@ -12,6 +12,11 @@ import { apiLimiter } from './src/api/v1/middleware/rateLimitMiddleware.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Production runs behind one proxy; needed for per-client rate limiting
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -42,11 +47,12 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Apply general rate limiting to all routes
-app.use(apiLimiter);
-
+// Stripe webhooks are signature-verified and must not be rate limited
 import webhooksRouter from './src/api/v1/routes/webhooks.routes.js';
 app.use('/api/v1/webhooks', webhooksRouter);
+
+// Apply general rate limiting to all other routes
+app.use(apiLimiter);
 
 // Now, we can use the JSON parser for all other routes with size limit
 app.use(express.json({ limit: '10mb' }));

@@ -2,7 +2,6 @@ import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import { supabase } from '../../../config/supabaseClient.js';
 import { logPaymentAction } from '../../../utils/auditLogger.js';
-import { sendEmail, paymentConfirmationTemplate } from '../../../utils/emailService.js';
 
 dotenv.config();
 
@@ -15,7 +14,8 @@ const RECURRING_PRICE_ID = process.env.RECURRING_PRICE_ID;
 const ONE_TIME_PRICE_ID = process.env.ONETIME_PRICE_ID;
 
 export const createCheckoutSession = async (req, res) => {
-  const { priceId, userId } = req.body;
+  const { priceId } = req.body;
+  const userId = req.user.id;
 
   if (!priceId || !userId) {
     return res.status(400).json({ error: 'Price ID and User ID are required.' });
@@ -80,12 +80,18 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const createDonationSession = async (req, res) => {
-  const { amount, userId, type } = req.body;
-
-  console.log('Creating donation session with:', { amount, userId, type });
+  const { amount, type } = req.body;
+  const userId = req.user.id;
 
   if (!amount || !userId || !type) {
     return res.status(400).json({ error: 'Amount, User ID, and donation type are required.' });
+  }
+
+  if (!['one-time', 'monthly'].includes(type)) {
+    return res.status(400).json({ error: 'Invalid donation type.' });
+  }
+  if (!Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Invalid donation amount.' });
   }
 
   // Validate amount (minimum $1 = 100 cents, maximum $1,000,000 = 100,000,000 cents)
@@ -199,7 +205,7 @@ export const createDonationSession = async (req, res) => {
 };
 
 export const createPortalSession = async (req, res) => {
-  const { userId } = req.body;
+  const userId = req.user.id;
 
   if (!userId) {
     return res.status(400).json({ error: 'User ID is required.' });

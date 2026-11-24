@@ -47,10 +47,11 @@ export const checkAccess = async (req, res) => {
  * Called when users sign up, login, logout, or change password
  */
 export const logAuthEvent = async (req, res) => {
-  const { userId, authAction, email, details } = req.body;
+  const { authAction, details } = req.body;
+  const { id: userId, email } = req.user;
 
-  if (!userId || !authAction) {
-    return res.status(400).json({ message: 'User ID and auth action are required.' });
+  if (!authAction) {
+    return res.status(400).json({ message: 'Auth action is required.' });
   }
 
   try {
@@ -74,10 +75,7 @@ export const forgotPassword = async (req, res) => {
 
   const redirectTo = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password`;
 
-  console.log(`[Forgot Password] Attempting to send reset email to: ${email}`);
-  console.log(`[Forgot Password] Redirect URL: ${redirectTo}`);
-
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 
   //Respond the same to avoid issues with security.
   if (error) {
@@ -90,9 +88,6 @@ export const forgotPassword = async (req, res) => {
     //Still return success!
   } else {
     console.log("✅ [Forgot Password] Reset email request sent successfully");
-    if (data) {
-      console.log("[Forgot Password] Response data:", data);
-    }
   }
 
   return res.status(200).json({

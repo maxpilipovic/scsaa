@@ -194,7 +194,7 @@ export const getAllEvents = async (req, res) => {
 
 export const createEvent = async (req, res) => {
   const { name, description, location, start_time, end_date, user_id } = req.body;
-  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const adminUserId = req.user?.id; // Admin user from auth middleware
   const sendEmailNotification = req.body.sendEmailNotification !== false; // Default to true
   
   try {
@@ -243,7 +243,7 @@ export const createEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
   const { eventId } = req.params;
   const { name, description, start_time, end_date, location } = req.body;
-  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const adminUserId = req.user?.id; // Admin user from auth middleware
   
   try {
     const { data, error } = await supabase.from('events').update({ name, description, start_time, end_date, location }).eq('event_id', eventId).select().single();
@@ -294,7 +294,7 @@ export const getAllAnnouncements = async (req, res) => {
 
 export const createAnnouncement = async (req, res) => {
   const { user_id, title, preview } = req.body;
-  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const adminUserId = req.user?.id; // Admin user from auth middleware
   const sendEmailNotification = req.body.sendEmailNotification !== false; // Default to true
   
   try {
@@ -343,7 +343,7 @@ export const createAnnouncement = async (req, res) => {
 export const updateAnnouncement = async (req, res) => {
   const { announcementId } = req.params;
   const { title, preview } = req.body;
-  const adminUserId = req.body.adminUserId; // Admin user performing the action
+  const adminUserId = req.user?.id; // Admin user from auth middleware
   
   try {
     const { data, error } = await supabase.from('announcements').update({ title, preview }).eq('announcements_id', announcementId).select().single();
@@ -388,7 +388,7 @@ export const checkAdminRole = async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('role')
+      .select('is_admin')
       .eq('id', userId)
       .single();
 
@@ -404,7 +404,7 @@ export const checkAdminRole = async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    const isAdmin = user.role === 'admin';
+    const isAdmin = user.is_admin === true;
     res.status(200).json({ isAdmin });
   } catch (error) {
     console.error(`Error checking admin role for user with ID ${userId}:`, error);
@@ -449,7 +449,8 @@ export const searchUsers = async (req, res) => {
  * @body    {userId, subject, body, adminUserId}
  */
 export const sendEmailToUser = async (req, res) => {
-  const { userId, subject, body, adminUserId } = req.body;
+  const { userId, subject, body } = req.body;
+  const adminUserId = req.user?.id;
 
   if (!userId || !subject || !body) {
     return res.status(400).json({ message: 'User ID, subject, and body are required.' });
@@ -459,7 +460,7 @@ export const sendEmailToUser = async (req, res) => {
     // Get the user's email
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('email, first_name, last_name')
+      .select('id, email, first_name, last_name')
       .eq('id', userId)
       .single();
 
@@ -505,7 +506,8 @@ export const sendEmailToUser = async (req, res) => {
  * @body    {userIds, subject, body, adminUserId}
  */
 export const sendBulkCustomEmail = async (req, res) => {
-  const { userIds, subject, body, adminUserId } = req.body;
+  const { userIds, subject, body } = req.body;
+  const adminUserId = req.user?.id;
 
   if (!userIds || !Array.isArray(userIds) || userIds.length === 0 || !subject || !body) {
     return res.status(400).json({ message: 'User IDs (array), subject, and body are required.' });
